@@ -1,0 +1,13 @@
+example:
+    dpi:
+        keystore:
+            alias: ''
+            lockProvider: false
+            password: ''
+            path: ''
+            type: jks
+    org:
+        identifier: 991825827
+spring:
+    main:
+        web-application-type: NONE

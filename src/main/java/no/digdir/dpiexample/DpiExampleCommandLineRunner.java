@@ -10,14 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DpiExampleCommandLineRunner implements CommandLineRunner {
-    String avsender;
-    String mottaker;
-    String postkasseadresse;
-    String orgnrPostkasse;
-    String certificate;
-    String tittel;
-    String file;
-
     private final Options options = new Options()
             .addOption(Option.builder("a")
                     .longOpt("avsender")
@@ -59,7 +51,8 @@ public class DpiExampleCommandLineRunner implements CommandLineRunner {
         try {
             CommandLine commandLine = getCommandLine(args);
             DpiExampleInput input = commandLineConverter.toDpiExampleInput(commandLine);
-            dpiExample.run(input);
+            DpiExampleOutput output = dpiExample.run(input);
+            log.info("Fingeravtrykk: {}", output.getFingeravtrykk());
         } catch (ParseException e) {
             log.error(e.getLocalizedMessage());
             new HelpFormatter().printHelp("dpiexample", options);

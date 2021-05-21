@@ -1,0 +1,192 @@
+package no.digdir.dpi.client.internal;
+
+import lombok.extern.slf4j.Slf4j;
+import no.digdir.dpi.client.domain.AsicEAttachable;
+import no.digdir.dpi.client.domain.Noekkelpar;
+import no.digdir.dpi.client.exception.KonfigurasjonException;
+import no.digdir.dpi.client.exception.RuntimeIOException;
+import no.digdir.dpi.client.exception.XmlKonfigurasjonException;
+import no.digdir.dpi.client.exception.XmlValideringException;
+import no.digdir.dpi.client.internal.domain.Signature;
+import no.digipost.api.xml.Schemas;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.xml.validation.SchemaLoaderUtils;
+import org.springframework.xml.validation.XmlValidatorFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.NodeSetData;
+import javax.xml.crypto.URIDereferencer;
+import javax.xml.crypto.dom.DOMStructure;
+import javax.xml.crypto.dsig.*;
+import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
+import javax.xml.crypto.dsig.keyinfo.X509Data;
+import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import javax.xml.crypto.dsig.spec.TransformParameterSpec;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static no.digdir.dpi.client.exception.SendException.AntattSkyldig.KLIENT;
+import static org.apache.commons.codec.digest.DigestUtils.sha256;
+
+@Slf4j
+@Component
+public class CreateSignature {
+
+    private static final String C14V1 = CanonicalizationMethod.INCLUSIVE;
+    private static final String ASIC_NAMESPACE = "http://uri.etsi.org/2918/v1.2.1#";
+    private static final String SIGNED_PROPERTIES_TYPE = "http://uri.etsi.org/01903#SignedProperties";
+
+    private final DigestMethod sha256DigestMethod;
+    private final CanonicalizationMethod canonicalizationMethod;
+    private final Transform canonicalXmlTransform;
+
+    private final DomUtils domUtils;
+    private final CreateXAdESArtifacts createXAdESArtifacts;
+    private final Noekkelpar noekkelpar;
+    private final Schema schema;
+
+    public CreateSignature(DomUtils domUtils, CreateXAdESArtifacts createXAdESArtifacts, Noekkelpar noekkelpar) {
+        this.domUtils = domUtils;
+        this.createXAdESArtifacts = createXAdESArtifacts;
+        this.noekkelpar = noekkelpar;
+
+        try {
+            XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
+            this.sha256DigestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA256, null);
+            this.canonicalizationMethod = xmlSignatureFactory.newCanonicalizationMethod(C14V1, (C14NMethodParameterSpec) null);
+            this.canonicalXmlTransform = xmlSignatureFactory.newTransform(C14V1, (TransformParameterSpec) null);
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            throw new KonfigurasjonException("Kunne ikke initialisere xml-signering, fordi " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+        }
+
+        this.schema = loadSchema();
+    }
+
+    private static Schema loadSchema() {
+        try {
+            return SchemaLoaderUtils.loadSchema(new Resource[]{Schemas.ASICE_SCHEMA}, XmlValidatorFactory.SCHEMA_W3C_XML);
+        } catch (IOException | SAXException e) {
+            throw new KonfigurasjonException("Kunne ikke laste schema for validering av signatures, fordi " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+        }
+    }
+
+    public Signature createSignature(final List<AsicEAttachable> attachedFiles) throws XmlValideringException {
+        log.info("Signing ASiC-E documents using private key with alias " + noekkelpar.getAlias());
+
+        XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
+        SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
+
+        // Generer XAdES-dokument som skal signeres, informasjon om nøkkel brukt til signering og informasjon om hva som er signert
+        XAdESArtifacts xadesArtifacts = createXAdESArtifacts.createArtifactsToSign(attachedFiles, noekkelpar.getVirksomhetssertifikat());
+
+        // Lag signatur-referanse for alle filer
+        List<Reference> references = references(xmlSignatureFactory, attachedFiles);
+
+        // Lag signatur-referanse for XaDES properties
+        references.add(xmlSignatureFactory.newReference(
+                xadesArtifacts.getSignablePropertiesReferenceUri(),
+                sha256DigestMethod,
+                singletonList(canonicalXmlTransform),
+                SIGNED_PROPERTIES_TYPE,
+                null
+        ));
+
+
+        KeyInfo keyInfo = keyInfo(xmlSignatureFactory, noekkelpar.getVirksomhetssertifikatKjede());
+        SignedInfo signedInfo = xmlSignatureFactory.newSignedInfo(canonicalizationMethod, signatureMethod, references);
+
+        // Definer signatur over XAdES-dokument
+        XMLObject xmlObject = xmlSignatureFactory.newXMLObject(singletonList(new DOMStructure(xadesArtifacts.getDocument().getDocumentElement())), null, null, null);
+        XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, singletonList(xmlObject), "Signature", null);
+
+        Document signedDocument = domUtils.newEmptyXmlDocument();
+        DOMSignContext signContext = new DOMSignContext(noekkelpar.getVirksomhetssertifikatPrivatnoekkel(), addXAdESSignaturesElement(signedDocument));
+        signContext.setURIDereferencer(signedPropertiesURIDereferencer(xadesArtifacts, xmlSignatureFactory));
+
+        try {
+            xmlSignature.sign(signContext);
+        } catch (MarshalException e) {
+            throw new XmlKonfigurasjonException("Klarte ikke å lese ASiC-E XML for signering", e);
+        } catch (XMLSignatureException e) {
+            throw new XmlKonfigurasjonException("Klarte ikke å signere ASiC-E element.", e);
+        }
+
+        try {
+            schema.newValidator().validate(new DOMSource(signedDocument));
+        } catch (SAXException | IOException e) {
+            throw new XmlValideringException(
+                    "Failed to validate generated signature.xml because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. " +
+                            "Verify that the input is valid and that there are no illegal symbols in file names etc.", KLIENT, e);
+        }
+        return new Signature(domUtils.serializeToXml(signedDocument));
+    }
+
+    private URIDereferencer signedPropertiesURIDereferencer(XAdESArtifacts xadesArtifacts, XMLSignatureFactory signatureFactory) {
+        return (uriReference, context) -> {
+            if (xadesArtifacts.getSignablePropertiesReferenceUri().equals(uriReference.getURI())) {
+                return (NodeSetData) domUtils.allNodesBelow(xadesArtifacts.getSignableProperties())::iterator;
+            }
+            return signatureFactory.getURIDereferencer().dereference(uriReference, context);
+        };
+    }
+
+    private static Element addXAdESSignaturesElement(Document doc) {
+        return (Element) doc.appendChild(doc.createElementNS(ASIC_NAMESPACE, "XAdESSignatures"));
+    }
+
+    private static SignatureMethod getSignatureMethod(final XMLSignatureFactory xmlSignatureFactory) {
+        try {
+            return xmlSignatureFactory.newSignatureMethod("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", null);
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            throw new KonfigurasjonException("Kunne ikke initialisere xml-signering", e);
+        }
+    }
+
+    private List<Reference> references(final XMLSignatureFactory xmlSignatureFactory, final List<AsicEAttachable> files) {
+        List<Reference> result = new ArrayList<>();
+        for (int i = 0; i < files.size(); i++) {
+            try {
+                String signatureElementId = "ID_" + i;
+                String uri = URLEncoder.encode(files.get(i).getFileName(), "UTF-8");
+                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
+                result.add(reference);
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeIOException(e);
+            }
+
+        }
+        return result;
+    }
+
+    private static KeyInfo keyInfo(final XMLSignatureFactory xmlSignatureFactory, final Certificate[] sertifikater) {
+        KeyInfoFactory keyInfoFactory = xmlSignatureFactory.getKeyInfoFactory();
+        X509Data x509Data = keyInfoFactory.newX509Data(asList(sertifikater));
+        return keyInfoFactory.newKeyInfo(singletonList(x509Data));
+    }
+
+    private static XMLSignatureFactory getSignatureFactory() {
+        try {
+            return XMLSignatureFactory.getInstance("DOM", "XMLDSig");
+        } catch (NoSuchProviderException e) {
+            throw new KonfigurasjonException("Fant ikke XML Digital Signature-provider. Biblioteket avhenger av default Java-provider.");
+        }
+    }
+
+}

@@ -4,9 +4,9 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.KeyPair;
-import no.digdir.dpi.client.exception.KonfigurasjonException;
 import no.digdir.dpi.client.internal.*;
 import no.digipost.api.xml.Schemas;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -22,12 +22,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.security.Security;
-import java.time.Clock;
 
 @Configuration
 @EnableConfigurationProperties
@@ -42,20 +40,18 @@ public class DpiClientConfig {
     private final DpiClientProperties properties;
 
     @Bean
-    public DpiClient dpiClient(Clock clock,
-                               CreateDokumentpakke createDokumentpakke,
+    public DpiClient dpiClient(CreateDokumentpakke createDokumentpakke,
                                CreateMaskinportenToken createMaskinportenToken,
                                CreateJWT createJWT,
                                CreateMultipart createMultipart) {
-        return new DpiClient(clock,
+        return new DpiClient(
                 createDokumentpakke,
                 createMaskinportenToken,
                 createJWT,
                 createMultipart,
                 WebClient.builder()
                         .baseUrl(properties.getUri())
-                        .build(),
-                new DefaultDataBufferFactory());
+                        .build());
     }
 
     @Bean
@@ -81,15 +77,12 @@ public class DpiClientConfig {
     }
 
     @Bean
+    @SneakyThrows
     public Jaxb2Marshaller jaxb2Marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
         marshaller.setClassesToBeBound(SDPManifest.class);
         marshaller.setSchema(Schemas.SDP_MANIFEST_SCHEMA);
-        try {
-            marshaller.afterPropertiesSet();
-        } catch (Exception e) {
-            throw new KonfigurasjonException("Kunne ikke sette opp Jaxb marshaller", e);
-        }
+        marshaller.afterPropertiesSet();
         return marshaller;
     }
 }

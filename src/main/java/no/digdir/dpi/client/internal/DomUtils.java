@@ -1,7 +1,6 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.SneakyThrows;
-import no.digdir.dpi.client.exception.KonfigurasjonException;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -34,12 +33,11 @@ public class DomUtils {
         documentBuilderFactory.setNamespaceAware(true);
     }
 
-
     public Document newEmptyXmlDocument() {
         try {
             return documentBuilderFactory.newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e) {
-            throw new KonfigurasjonException("Unable to create new Document. " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+            throw new Exception("Unable to create new Document. ", e);
         }
     }
 
@@ -56,10 +54,14 @@ public class DomUtils {
             transformer.transform(new DOMSource(root), new StreamResult(outputStream));
             serializedXml = outputStream.toByteArray();
         } catch (TransformerException | IOException e) {
-            throw new KonfigurasjonException("Unable to serialize XML because " + e.getClass().getSimpleName() + ": '" + e.getMessage(), e);
+            throw new Exception("Unable to serialize XML", e);
         }
         return serializedXml;
     }
 
-
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

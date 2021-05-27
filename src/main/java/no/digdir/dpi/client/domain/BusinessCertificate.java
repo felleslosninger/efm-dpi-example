@@ -1,7 +1,6 @@
 package no.digdir.dpi.client.domain;
 
 import lombok.Value;
-import no.digdir.dpi.client.exception.SertifikatException;
 
 import java.io.ByteArrayInputStream;
 import java.security.KeyStore;
@@ -25,7 +24,7 @@ public class BusinessCertificate {
         try {
             return x509Certificate.getEncoded();
         } catch (CertificateEncodingException e) {
-            throw new SertifikatException("Kunne ikke hente encoded utgave av sertifikatet", e);
+            throw new Exception("Kunne ikke hente encoded utgave av sertifikatet", e);
         }
     }
 
@@ -33,12 +32,8 @@ public class BusinessCertificate {
         try {
             return createBusinessCertificate(certificate);
         } catch (CertificateException e) {
-            throw new SertifikatException("Kunne ikke lese sertifikat fra byte array", e);
+            throw new Exception("Kunne ikke lese sertifikat fra byte array", e);
         }
-    }
-
-    public static BusinessCertificate fraCertificate(X509Certificate certificate) {
-        return new BusinessCertificate(certificate);
     }
 
     public static BusinessCertificate fraKeyStore(KeyStore keyStore, String alias) {
@@ -46,15 +41,15 @@ public class BusinessCertificate {
         try {
             certificate = keyStore.getCertificate(alias);
         } catch (KeyStoreException e) {
-            throw new SertifikatException("Klarte ikke lese sertifikat fra keystore", e);
+            throw new Exception("Klarte ikke lese sertifikat fra keystore", e);
         }
 
         if (certificate == null) {
-            throw new SertifikatException("Kunne ikke finne sertifikat i keystore. Er du sikker på at det er brukt keystore med et sertifikat og at du har oppgitt riktig alias?");
+            throw new Exception("Kunne ikke finne sertifikat i keystore. Er du sikker på at det er brukt keystore med et sertifikat og at du har oppgitt riktig alias?");
         }
 
         if (!(certificate instanceof X509Certificate)) {
-            throw new SertifikatException("Klienten støtter kun X509-sertifikater. Fikk sertifikat av typen " + certificate.getClass().getSimpleName());
+            throw new Exception("Klienten støtter kun X509-sertifikater. Fikk sertifikat av typen " + certificate.getClass().getSimpleName());
         }
 
         return new BusinessCertificate((X509Certificate) certificate);
@@ -65,5 +60,15 @@ public class BusinessCertificate {
                 .getInstance("X509")
                 .generateCertificate(new ByteArrayInputStream(certificate));
         return new BusinessCertificate(x509Certificate);
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message) {
+            super(message);
+        }
+
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

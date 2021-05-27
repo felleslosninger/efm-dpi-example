@@ -7,7 +7,6 @@ import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
-import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.DpiMapper;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
@@ -19,12 +18,12 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class ForsendelseFactory {
+public class ShipmentFactory {
 
     private final FileExtensionMapper fileExtensionMapper;
     private final DpiMapper dpiMapper;
 
-    public Shipment getForsendelse(DpiExampleInput input) {
+    public Shipment getShipment(DpiExampleInput input) {
         return new Shipment()
                 .setStandardBusinessDocument(getStandardBusinessDocument(input))
                 .setParcel(getParcel(input))
@@ -42,7 +41,7 @@ public class ForsendelseFactory {
         try (InputStream inputStream = input.getReceiverCertificate().getInputStream()) {
             return BusinessCertificate.fraByteArray(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new Exception("Couldn't get receiver certificate!", e);
         }
     }
 
@@ -59,15 +58,21 @@ public class ForsendelseFactory {
         return new Document()
                 .setTitle(resource.getDescription())
                 .setFilename(resource.getFilename())
-                .setBytes(getDokument(resource))
+                .setBytes(getBytes(resource))
                 .setMimeType(fileExtensionMapper.getMimetype(resource));
     }
 
-    private byte[] getDokument(Resource resource) {
+    private byte[] getBytes(Resource resource) {
         try (InputStream is = resource.getInputStream()) {
             return IOUtils.toByteArray(is);
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new Exception("Couldn't read resource", e);
+        }
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

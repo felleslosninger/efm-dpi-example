@@ -1,8 +1,6 @@
 package no.digdir.dpi.example;
 
 import lombok.Getter;
-import no.digdir.dpi.client.exception.RuntimeIOException;
-import no.digdir.dpi.client.exception.SertifikatException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -11,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -52,8 +51,8 @@ public class TrustedCertificates {
             KeyStore truststore = KeyStore.getInstance("JCEKS");
             truststore.load(null, "".toCharArray());
             return truststore;
-        } catch (Exception e) {
-            throw new SertifikatException("Oppretting av tom keystore feilet.", e);
+        } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | IOException e) {
+            throw new Exception("Creating empty keystore failed!", e);
         }
     }
 
@@ -61,10 +60,8 @@ public class TrustedCertificates {
         try (InputStream inputStream = resource.getInputStream()) {
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             return (X509Certificate) certFactory.generateCertificate(inputStream);
-        } catch (CertificateException e) {
-            throw new SertifikatException(e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
+        } catch (CertificateException | IOException e) {
+            throw new Exception("Reading cerificate failed!", e);
         }
     }
 
@@ -72,11 +69,17 @@ public class TrustedCertificates {
         try {
             trustStore.setCertificateEntry(getAlias(certificate), certificate);
         } catch (KeyStoreException e) {
-            throw new SertifikatException("Klarte ikke å legge til sertifikat til trust store.", e);
+            throw new Exception("Klarte ikke å legge til sertifikat til trust store.", e);
         }
     }
 
     private String getAlias(X509Certificate certificate) {
         return certificate.getSerialNumber().toString() + Math.random();
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package no.digdir.dpi.client.domain;
 
 import lombok.Data;
-import no.digdir.dpi.client.exception.KeyPairException;
 
 import java.security.*;
 import java.security.cert.Certificate;
@@ -26,7 +25,7 @@ public class KeyPair {
         try {
             return keyStore.getCertificateChain(businessCertificateAlias);
         } catch (KeyStoreException e) {
-            throw new KeyPairException("Kunne ikke hente privatnøkkel fra KeyStore. Er KeyStore initialisiert?", e);
+            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Er KeyStore initialisiert?", e);
         }
     }
 
@@ -35,15 +34,25 @@ public class KeyPair {
 
             Key key = keyStore.getKey(businessCertificateAlias, businessCertificatePassword.toCharArray());
             if (!(key instanceof PrivateKey)) {
-                throw new KeyPairException("Kunne ikke hente privatnøkkel fra KeyStore. Forventet å få en PrivateKey, fikk " + key.getClass().getCanonicalName());
+                throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Forventet å få en PrivateKey, fikk " + key.getClass().getCanonicalName());
             }
             return (PrivateKey) key;
         } catch (KeyStoreException e) {
-            throw new KeyPairException("Kunne ikke hente privatnøkkel fra KeyStore. Er KeyStore initialisiert?", e);
+            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Er KeyStore initialisiert?", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new KeyPairException("Kunne ikke hente privatnøkkel fra KeyStore. Verifiser at nøkkelen er støttet på plattformen", e);
+            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Verifiser at nøkkelen er støttet på plattformen", e);
         } catch (UnrecoverableKeyException e) {
-            throw new KeyPairException("Kunne ikke hente privatnøkkel fra KeyStore. Sjekk at passordet er riktig.", e);
+            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Sjekk at passordet er riktig.", e);
+        }
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message) {
+            super(message);
+        }
+
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

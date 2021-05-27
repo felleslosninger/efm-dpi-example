@@ -3,10 +3,6 @@ package no.digdir.dpi.client.internal;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
 import no.digdir.dpi.client.domain.KeyPair;
-import no.digdir.dpi.client.exception.KonfigurasjonException;
-import no.digdir.dpi.client.exception.RuntimeIOException;
-import no.digdir.dpi.client.exception.XmlKonfigurasjonException;
-import no.digdir.dpi.client.exception.XmlValideringException;
 import no.digdir.dpi.client.internal.domain.Signature;
 import no.digipost.api.xml.Schemas;
 import org.springframework.core.io.Resource;
@@ -42,7 +38,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static no.digdir.dpi.client.exception.SendException.AntattSkyldig.KLIENT;
 import static org.apache.commons.codec.digest.DigestUtils.sha256;
 
 @Slf4j
@@ -73,7 +68,7 @@ public class CreateSignature {
             this.canonicalizationMethod = xmlSignatureFactory.newCanonicalizationMethod(C14V1, (C14NMethodParameterSpec) null);
             this.canonicalXmlTransform = xmlSignatureFactory.newTransform(C14V1, (TransformParameterSpec) null);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-            throw new KonfigurasjonException("Kunne ikke initialisere xml-signering, fordi " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+            throw new Exception("Kunne ikke initialisere xml-signering", e);
         }
 
         this.schema = loadSchema();
@@ -83,11 +78,11 @@ public class CreateSignature {
         try {
             return SchemaLoaderUtils.loadSchema(new Resource[]{Schemas.ASICE_SCHEMA}, XmlValidatorFactory.SCHEMA_W3C_XML);
         } catch (IOException | SAXException e) {
-            throw new KonfigurasjonException("Kunne ikke laste schema for validering av signatures, fordi " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'", e);
+            throw new Exception("Kunne ikke laste schema for validering av signatures", e);
         }
     }
 
-    public Signature createSignature(final List<AsicEAttachable> attachedFiles) throws XmlValideringException {
+    public Signature createSignature(final List<AsicEAttachable> attachedFiles) {
         log.info("Signing ASiC-E documents using private key with alias " + keyPair.getAlias());
 
         XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
@@ -123,17 +118,17 @@ public class CreateSignature {
         try {
             xmlSignature.sign(signContext);
         } catch (MarshalException e) {
-            throw new XmlKonfigurasjonException("Klarte ikke å lese ASiC-E XML for signering", e);
+            throw new Exception("Klarte ikke å lese ASiC-E XML for signering", e);
         } catch (XMLSignatureException e) {
-            throw new XmlKonfigurasjonException("Klarte ikke å signere ASiC-E element.", e);
+            throw new Exception("Klarte ikke å signere ASiC-E element.", e);
         }
 
         try {
             schema.newValidator().validate(new DOMSource(signedDocument));
         } catch (SAXException | IOException e) {
-            throw new XmlValideringException(
+            throw new Exception(
                     "Failed to validate generated signature.xml because " + e.getClass().getSimpleName() + ": '" + e.getMessage() + "'. " +
-                            "Verify that the input is valid and that there are no illegal symbols in file names etc.", KLIENT, e);
+                            "Verify that the input is valid and that there are no illegal symbols in file names etc.", e);
         }
         return new Signature(domUtils.serializeToXml(signedDocument));
     }
@@ -155,7 +150,7 @@ public class CreateSignature {
         try {
             return xmlSignatureFactory.newSignatureMethod("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256", null);
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-            throw new KonfigurasjonException("Kunne ikke initialisere xml-signering", e);
+            throw new Exception("Kunne ikke initialisere xml-signering", e);
         }
     }
 
@@ -168,7 +163,7 @@ public class CreateSignature {
                 Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
                 result.add(reference);
             } catch (UnsupportedEncodingException e) {
-                throw new RuntimeIOException(e);
+                throw new Exception("Failed to get references", e);
             }
 
         }
@@ -185,8 +180,17 @@ public class CreateSignature {
         try {
             return XMLSignatureFactory.getInstance("DOM", "XMLDSig");
         } catch (NoSuchProviderException e) {
-            throw new KonfigurasjonException("Fant ikke XML Digital Signature-provider. Biblioteket avhenger av default Java-provider.");
+            throw new Exception("Fant ikke XML Digital Signature-provider. Biblioteket avhenger av default Java-provider.");
         }
     }
 
+    private static class Exception extends RuntimeException {
+        public Exception(String message) {
+            super(message);
+        }
+
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

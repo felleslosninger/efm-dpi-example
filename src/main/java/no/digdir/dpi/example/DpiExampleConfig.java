@@ -24,7 +24,7 @@ import java.util.Optional;
         DpiClientConfig.class,
         DpiClientProperties.class,
         TrustedCertificates.class,
-        ForsendelseFactory.class,
+        ShipmentFactory.class,
         FileExtensionMapper.class
 })
 public class DpiExampleConfig {
@@ -38,7 +38,7 @@ public class DpiExampleConfig {
     }
 
     @Bean
-    public KeyPair noekkelpar() throws KeystoreProviderException {
+    public KeyPair keyPair() throws KeystoreProviderException {
         KeyStore keyStore = KeystoreProvider.loadKeyStore(properties.getKeystore());
 
         return new KeyPair()

@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 public class DpiExample {
 
     private final DpiClient dpiClient;
-    private final ForsendelseFactory forsendelseFactory;
+    private final ShipmentFactory shipmentFactory;
 
     public void run(DpiExampleInput input) {
-        dpiClient.send(forsendelseFactory.getForsendelse(input));
+        dpiClient.send(shipmentFactory.getShipment(input));
     }
 }

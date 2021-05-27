@@ -2,7 +2,6 @@ package no.digdir.dpi.client.internal;
 
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.domain.Archive;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -34,7 +33,13 @@ public class CreateZip {
             zipOutputStream.finish();
             return new Archive(archive.toByteArray());
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new Exception("Failed to create XIP!", e);
+        }
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

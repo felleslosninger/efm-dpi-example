@@ -2,8 +2,6 @@ package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
 import no.digdir.dpi.client.domain.BusinessCertificate;
-import no.digdir.dpi.client.exception.KonfigurasjonException;
-import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.domain.CMSDocument;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -40,11 +38,15 @@ public class CreateCMSDocument {
             return new CMSDocument(cmsData.getEncoded());
 
         } catch (CertificateEncodingException e) {
-            throw new KonfigurasjonException("Feil med mottakers sertifikat", e);
-        } catch (CMSException e) {
-            throw new KonfigurasjonException("Kunne ikke generere Cryptographic Message Syntax for dokumentpakke", e);
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new Exception("Feil med mottakers sertifikat", e);
+        } catch (CMSException | IOException e) {
+            throw new Exception("Kunne ikke generere Cryptographic Message Syntax for dokumentpakke", e);
+        }
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

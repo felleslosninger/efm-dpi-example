@@ -3,8 +3,6 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.exception.SendException;
-import no.digdir.dpi.client.exception.XmlValideringException;
 import no.digdir.dpi.client.internal.domain.Manifest;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -30,11 +28,17 @@ public class CreateManifest {
             return new Manifest(manifestStream.toByteArray());
         } catch (MarshallingFailureException e) {
             if (e.getMostSpecificCause() instanceof SAXParseException) {
-                throw new XmlValideringException("Kunne ikke validere generert Manifest XML. Sjekk at alle påkrevde input er satt og ikke er null",
-                        SendException.AntattSkyldig.KLIENT, (SAXParseException) e.getMostSpecificCause());
+                throw new Exception("Kunne ikke validere generert Manifest XML. Sjekk at alle påkrevde input er satt og ikke er null",
+                        e.getMostSpecificCause());
             }
 
             throw e;
+        }
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

@@ -10,7 +10,7 @@ import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.example.DpiExampleConfig;
 import no.digdir.dpi.example.DpiExampleInput;
-import no.digdir.dpi.example.ForsendelseFactory;
+import no.digdir.dpi.example.ShipmentFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ class DpiClientTest {
     private DpiClient dpiClient;
 
     @Autowired
-    private ForsendelseFactory forsendelseFactory;
+    private ShipmentFactory shipmentFactory;
 
     @Autowired
     private KeyPair keyPair;
@@ -92,7 +92,7 @@ class DpiClientTest {
                 .respond(response()
                         .withStatusCode(200));
 
-        Shipment shipment = forsendelseFactory.getForsendelse(DpiExampleInput.builder()
+        Shipment shipment = shipmentFactory.getShipment(DpiExampleInput.builder()
                 .standardBusinessDocument(digitalSbd)
                 .mainDocument(hoveddokument)
                 .attachments(Collections.singletonList(vedlegg))

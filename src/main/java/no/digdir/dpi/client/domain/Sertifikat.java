@@ -6,12 +6,17 @@ import no.digdir.dpi.client.exception.SertifikatException;
 import java.io.ByteArrayInputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.PublicKey;
 import java.security.cert.*;
 
 @Value
 public class Sertifikat {
 
     X509Certificate x509Certificate;
+
+    public PublicKey getPublicKey() {
+        return x509Certificate.getPublicKey();
+    }
 
     public byte[] getEncoded() {
         try {

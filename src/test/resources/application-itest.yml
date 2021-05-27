@@ -1,0 +1,19 @@
+dpi:
+    client:
+        keystore:
+            alias: c1
+            lockProvider: false
+            password: test
+            path: classpath:/c1.jks
+            type: jks
+        uri: 'http://localhost:8900/dpi'
+    server:
+        keystore:
+            alias: c2
+            lockProvider: false
+            password: test
+            path: classpath:/c2.jks
+            type: jks
+spring:
+    main:
+        web-application-type: NONE

@@ -7,65 +7,66 @@ import no.digdir.dpi.client.domain.Forsendelse;
 import no.digdir.dpi.client.domain.SendResultat;
 import no.digdir.dpi.client.domain.sbd.Dokumentpakkefingeravtrykk;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import no.digdir.dpi.client.exception.SendException;
 import no.digdir.dpi.client.internal.CreateDokumentpakke;
 import no.digdir.dpi.client.internal.CreateJWT;
+import no.digdir.dpi.client.internal.CreateMaskinportenToken;
+import no.digdir.dpi.client.internal.CreateMultipart;
 import no.digdir.dpi.client.internal.domain.Billable;
 import no.digipost.api.representations.Dokumentpakke;
-import org.springframework.stereotype.Component;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class DpiClient {
 
     private final Clock clock;
     private final CreateDokumentpakke createDokumentpakke;
+    private final CreateMaskinportenToken createMaskinportenToken;
     private final CreateJWT createJWT;
+    private final CreateMultipart createMultipart;
+    private final WebClient webClient;
+    private final DataBufferFactory dataBufferFactory;
 
     @SneakyThrows
     public SendResultat send(Forsendelse forsendelse) {
         Billable<Dokumentpakke> billable = createDokumentpakke.createDokumentpakke(forsendelse);
         Dokumentpakke dokumentpakke = billable.getEntity();
-
-        File asic = getAsic(dokumentpakke);
-
         StandardBusinessDocument standardBusinessDocument = forsendelse.getStandardBusinessDocument();
 
+        String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
+
         standardBusinessDocument.getDigitalpost()
-                .setDokumentpakkefingeravtrykk(getFingeravtrykk(dokumentpakke));
+                .setDokumentpakkefingeravtrykk(getFingeravtrykk(dokumentpakke))
+                .setMaskinportentoken(maskinportenToken);
 
         String jwt = createJWT.createJWT(standardBusinessDocument);
-        log.info("JWT: {}", jwt);
 
-        return null;
-//        return new SendResultat(entity.messageId, entity.refToMessageId, billable.billableBytes);
-    }
+        webClient.post()
+                .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", maskinportenToken))
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(jwt, dokumentpakke)))
+                .retrieve()
+                .onStatus(HttpStatus::isError, e -> e.bodyToMono(String.class)
+                        .flatMap(s -> Mono.error(new SendException("http status: " + e.statusCode() + ", body: " + s,
+                                e.statusCode().is5xxServerError()
+                                        ? SendException.AntattSkyldig.SERVER
+                                        : SendException.AntattSkyldig.KLIENT)))
+                )
+                .toBodilessEntity()
+                .block();
 
-    private File getAsic(Dokumentpakke dokumentpakke) throws IOException {
-        File asic = new File(String.format("%s.%s",
-                DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss").format(LocalDateTime.now(clock)),
-                dokumentpakke.getName()
-        ));
-
-        log.info("Writing ASiC-E: {}", asic.getAbsolutePath());
-
-        try (InputStream inputStream = dokumentpakke.getInputStream()) {
-            Files.copy(
-                    inputStream,
-                    asic.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        return asic;
+        return new SendResultat(billable.getBillableBytes());
     }
 
     private Dokumentpakkefingeravtrykk getFingeravtrykk(Dokumentpakke dokumentpakke) throws IOException {

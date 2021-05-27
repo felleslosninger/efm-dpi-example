@@ -3,11 +3,9 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Forsendelse;
-import no.digdir.dpi.client.exception.KonfigurasjonException;
 import no.digdir.dpi.client.exception.SendException;
 import no.digdir.dpi.client.exception.XmlValideringException;
 import no.digdir.dpi.client.internal.domain.Manifest;
-import no.digipost.api.xml.Schemas;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Component;
@@ -20,19 +18,7 @@ import java.io.ByteArrayOutputStream;
 @RequiredArgsConstructor
 public class CreateManifest {
 
-    private static final Jaxb2Marshaller marshaller;
-
-    static {
-        marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(SDPManifest.class);
-        marshaller.setSchema(Schemas.SDP_MANIFEST_SCHEMA);
-        try {
-            marshaller.afterPropertiesSet();
-        } catch (Exception e) {
-            throw new KonfigurasjonException("Kunne ikke sette opp Jaxb marshaller", e);
-        }
-    }
-
+    private final Jaxb2Marshaller marshaller;
     private final SDPBuilder sdpBuilder;
 
     public Manifest createManifest(Forsendelse forsendelse) {
@@ -50,6 +36,5 @@ public class CreateManifest {
 
             throw e;
         }
-
     }
 }

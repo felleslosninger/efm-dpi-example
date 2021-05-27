@@ -1,11 +1,9 @@
 package no.digdir.dpi.client.domain;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class SendResultat {
 
-    String meldingsId;
-    String referanseTilMeldingsId;
     long fakturerbareBytes;
 }

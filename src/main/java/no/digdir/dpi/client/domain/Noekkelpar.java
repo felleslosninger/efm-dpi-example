@@ -32,6 +32,7 @@ public class Noekkelpar {
 
     public PrivateKey getVirksomhetssertifikatPrivatnoekkel() {
         try {
+
             Key key = keyStore.getKey(virksomhetssertifikatAlias, virksomhetssertifikatPassword.toCharArray());
             if (!(key instanceof PrivateKey)) {
                 throw new NoekkelException("Kunne ikke hente privatnøkkel fra KeyStore. Forventet å få en PrivateKey, fikk " + key.getClass().getCanonicalName());

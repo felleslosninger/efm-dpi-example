@@ -6,10 +6,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import org.springframework.core.io.Resource;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
+import java.io.InputStream;
 
 @Component
 public class DpiMapper {
@@ -24,8 +25,10 @@ public class DpiMapper {
     }
 
     @SneakyThrows
-    public StandardBusinessDocument readStandardBusinessDocument(File file) {
-        return objectMapper.readValue(file, StandardBusinessDocument.class);
+    public StandardBusinessDocument readStandardBusinessDocument(Resource resource) {
+        try (InputStream inputStream = resource.getInputStream()) {
+            return objectMapper.readValue(inputStream, StandardBusinessDocument.class);
+        }
     }
 
     @SneakyThrows

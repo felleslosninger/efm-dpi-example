@@ -6,6 +6,7 @@ import no.difi.move.common.cert.KeystoreProvider;
 import no.difi.move.common.cert.KeystoreProviderException;
 import no.difi.move.common.config.KeystoreProperties;
 import no.digdir.dpi.client.DpiClientConfig;
+import no.digdir.dpi.client.DpiClientProperties;
 import no.digdir.dpi.client.domain.Noekkelpar;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,10 +20,16 @@ import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
-@Import(DpiClientConfig.class)
+@Import({
+        DpiClientConfig.class,
+        DpiClientProperties.class,
+        TrustedCertificates.class,
+        ForsendelseFactory.class,
+        FileExtensionMapper.class
+})
 public class DpiExampleConfig {
 
-    private final DpiExampleProperties properties;
+    private final DpiClientProperties properties;
     private final TrustedCertificates trustedCertificates;
 
     @Bean
@@ -32,19 +39,19 @@ public class DpiExampleConfig {
 
     @Bean
     public Noekkelpar noekkelpar() throws KeystoreProviderException {
-        KeyStore keyStore = KeystoreProvider.loadKeyStore(properties.getDpi().getKeystore());
+        KeyStore keyStore = KeystoreProvider.loadKeyStore(properties.getKeystore());
 
         return new Noekkelpar()
                 .setKeyStore(keyStore)
                 .setTrustStore(getTrustStore()
                         .map(this::addTrustedCertificates)
                         .orElseGet(trustedCertificates::getTrustStore))
-                .setVirksomhetssertifikatAlias(properties.getDpi().getKeystore().getAlias())
-                .setVirksomhetssertifikatPassword(properties.getDpi().getKeystore().getPassword());
+                .setVirksomhetssertifikatAlias(properties.getKeystore().getAlias())
+                .setVirksomhetssertifikatPassword(properties.getKeystore().getPassword());
     }
 
     private Optional<KeyStore> getTrustStore() {
-        return Optional.ofNullable(properties.getDpi().getTrustStore())
+        return Optional.ofNullable(properties.getTrustStore())
                 .map(this::loadTrustStore);
     }
 

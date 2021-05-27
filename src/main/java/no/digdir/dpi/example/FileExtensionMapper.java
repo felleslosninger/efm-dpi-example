@@ -1,10 +1,10 @@
 package no.digdir.dpi.example;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -39,8 +39,11 @@ public class FileExtensionMapper {
         mimeTypeMap.put("zip", "application/octet-stream");
     }
 
-    public String getMimetype(File file) {
-        String name = file.getName();
+    public String getMimetype(Resource resource) {
+        String name = resource.getFilename();
+        if (name == null) {
+            return MediaType.APPLICATION_PDF_VALUE;
+        }
         String[] parts = name.split("\\.");
         String extension = Stream.of(parts).reduce((p, e) -> e).orElse("pdf");
         return getMimetype(extension);

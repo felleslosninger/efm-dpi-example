@@ -8,7 +8,7 @@ public class Dokument implements AsicEAttachable {
     String tittel;
     String filnavn;
     byte[] dokument;
-    String mimeType = "application/pdf";
+    String mimeType;
     MetadataDokument metadataDocument;
 
     @Override

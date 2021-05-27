@@ -9,12 +9,12 @@ import no.digdir.dpi.client.domain.Sertifikat;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.DpiMapper;
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,7 +24,7 @@ public class ForsendelseFactory {
     private final FileExtensionMapper fileExtensionMapper;
     private final DpiMapper dpiMapper;
 
-    public Forsendelse getForsendelse(DpiExampleInput input) throws IOException {
+    public Forsendelse getForsendelse(DpiExampleInput input) {
         return new Forsendelse()
                 .setStandardBusinessDocument(getStandardBusinessDocument(input))
                 .setDokumentpakke(getDokumentpakke(input))
@@ -35,33 +35,37 @@ public class ForsendelseFactory {
 
     @SneakyThrows
     private StandardBusinessDocument getStandardBusinessDocument(DpiExampleInput input) {
-        return dpiMapper.readStandardBusinessDocument(input.getFiles().getStandardBusinessDocument());
+        return dpiMapper.readStandardBusinessDocument(input.getStandardBusinessDocument());
     }
 
-    private Sertifikat getMottakerSertifikat(DpiExampleInput input) throws IOException {
-        return Sertifikat.fraByteArray(Files.readAllBytes(Paths.get(input.getSertifikat())));
+    private Sertifikat getMottakerSertifikat(DpiExampleInput input) {
+        try (InputStream inputStream = input.getSertifikat().getInputStream()) {
+            return Sertifikat.fraByteArray(IOUtils.toByteArray(inputStream));
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
     }
 
     private Dokumentpakke getDokumentpakke(DpiExampleInput input) {
         return new Dokumentpakke()
-                .setHoveddokument(getDocument(input.getFiles().getHoveddokument()))
-                .setVedlegg(input.getFiles().getVedlegg()
+                .setHoveddokument(getDocument(input.getHoveddokument()))
+                .setVedlegg(input.getVedlegg()
                         .stream()
                         .map(this::getDocument)
                         .collect(Collectors.toList()));
     }
 
-    private Dokument getDocument(File file) {
+    private Dokument getDocument(Resource resource) {
         return new Dokument()
-                .setTittel(file.getName())
-                .setFilnavn(file.getName())
-                .setDokument(getDokument(file))
-                .setMimeType(fileExtensionMapper.getMimetype(file));
+                .setTittel(resource.getDescription())
+                .setFilnavn(resource.getFilename())
+                .setDokument(getDokument(resource))
+                .setMimeType(fileExtensionMapper.getMimetype(resource));
     }
 
-    private byte[] getDokument(File file) {
-        try {
-            return Files.readAllBytes(file.toPath());
+    private byte[] getDokument(Resource resource) {
+        try (InputStream is = resource.getInputStream()) {
+            return IOUtils.toByteArray(is);
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }

@@ -1,13 +1,12 @@
-example:
-    dpi:
+dpi:
+    client:
         keystore:
             alias: ''
             lockProvider: false
             password: ''
             path: ''
             type: jks
-    org:
-        identifier: 991825827
+        uri: 'http://localhost:8081/dpi'
 spring:
     main:
         web-application-type: NONE

@@ -9,6 +9,12 @@ public class SendException extends SikkerDigitalPostException {
 
     private final AntattSkyldig antattSkyldig;
 
+
+    public SendException(String message, AntattSkyldig antattSkyldig) {
+        super(message);
+        this.antattSkyldig = antattSkyldig;
+    }
+
     public SendException(String message, AntattSkyldig antattSkyldig, Exception e) {
         super(message, e);
         this.antattSkyldig = antattSkyldig;
@@ -21,14 +27,14 @@ public class SendException extends SikkerDigitalPostException {
     public enum AntattSkyldig {
         /**
          * Feilen er trolig forårsaket av en feil i klienten eller klientoppsettet.
-         *
+         * <p>
          * Å forsøke samme forespørsel igjen vil sannsynligvis ikke gjøre noe med situasjonen.
          */
         KLIENT,
 
         /**
          * Feilen er trolig forårsaket av en feil i meldingsformidleren.
-         *
+         * <p>
          * Det kan fungere å prøve forespørselen igjen senere.
          */
         SERVER,
@@ -46,7 +52,7 @@ public class SendException extends SikkerDigitalPostException {
             String localPart = soapFaultCode.getLocalPart();
             if ("Receiver".equals(localPart)) {
                 return SERVER;
-            } else if("Sender".equals(localPart)) {
+            } else if ("Sender".equals(localPart)) {
                 return KLIENT;
             } else {
                 return UKJENT;

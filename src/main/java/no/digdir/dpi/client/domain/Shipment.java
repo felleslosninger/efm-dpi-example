@@ -4,11 +4,11 @@ import lombok.Data;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 
 @Data
-public class Forsendelse {
+public class Shipment {
 
     StandardBusinessDocument standardBusinessDocument;
-    Dokumentpakke dokumentpakke;
-    String postkasseadresse;
-    Sertifikat mottakerSertifikat;
-    String spraakkode = "NO";
+    Parcel parcel;
+    String mailbox;
+    BusinessCertificate receiverBusinessCertificate;
+    String language = "NO";
 }

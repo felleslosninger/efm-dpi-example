@@ -1,7 +1,7 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
-import no.digdir.dpi.client.domain.Sertifikat;
+import no.digdir.dpi.client.domain.BusinessCertificate;
 import no.digdir.dpi.client.exception.KonfigurasjonException;
 import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.domain.CMSDocument;
@@ -25,9 +25,9 @@ public class CreateCMSDocument {
     private final ASN1ObjectIdentifier cmsEncryptionAlgorithm;
     private final AlgorithmIdentifier keyEncryptionScheme;
 
-    public CMSDocument createCMS(byte[] bytes, Sertifikat sertifikat) {
+    public CMSDocument createCMS(byte[] bytes, BusinessCertificate businessCertificate) {
         try {
-            JceKeyTransRecipientInfoGenerator recipientInfoGenerator = new JceKeyTransRecipientInfoGenerator(sertifikat.getX509Certificate(), keyEncryptionScheme)
+            JceKeyTransRecipientInfoGenerator recipientInfoGenerator = new JceKeyTransRecipientInfoGenerator(businessCertificate.getX509Certificate(), keyEncryptionScheme)
                     .setProvider(BouncyCastleProvider.PROVIDER_NAME);
 
             CMSEnvelopedDataGenerator envelopedDataGenerator = new CMSEnvelopedDataGenerator();

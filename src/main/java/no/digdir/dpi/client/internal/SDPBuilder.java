@@ -1,8 +1,8 @@
 package no.digdir.dpi.client.internal;
 
 import no.difi.begrep.sdp.schema_v10.*;
-import no.digdir.dpi.client.domain.Dokument;
-import no.digdir.dpi.client.domain.Forsendelse;
+import no.digdir.dpi.client.domain.Document;
+import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.sbd.Avsender;
 import no.digdir.dpi.client.domain.sbd.Identifikator;
 import no.digdir.dpi.client.domain.sbd.Mottaker;
@@ -15,54 +15,54 @@ import java.util.stream.Collectors;
 @Component
 public class SDPBuilder {
 
-    public SDPManifest createManifest(Forsendelse forsendelse) {
+    public SDPManifest createManifest(Shipment shipment) {
         return new SDPManifest(
-                getSdpMottaker(forsendelse),
-                sdpAvsender(getAvsender(forsendelse)),
-                getHoveddokument(forsendelse),
-                getSdpVedlegg(forsendelse), null);
+                getSdpMottaker(shipment),
+                sdpAvsender(getAvsender(shipment)),
+                getHoveddokument(shipment),
+                getSdpVedlegg(shipment), null);
     }
 
-    private Avsender getAvsender(Forsendelse forsendelse) {
-        return forsendelse.getStandardBusinessDocument().getDigitalpost().getAvsender();
+    private Avsender getAvsender(Shipment shipment) {
+        return shipment.getStandardBusinessDocument().getDigitalpost().getAvsender();
     }
 
-    private SDPDokument getHoveddokument(Forsendelse forsendelse) {
-        return sdpDokument(forsendelse.getDokumentpakke().getHoveddokument(), forsendelse.getSpraakkode());
+    private SDPDokument getHoveddokument(Shipment shipment) {
+        return sdpDokument(shipment.getParcel().getMainDocument(), shipment.getLanguage());
     }
 
-    private List<SDPDokument> getSdpVedlegg(Forsendelse forsendelse) {
-        return forsendelse.getDokumentpakke().getVedlegg()
+    private List<SDPDokument> getSdpVedlegg(Shipment shipment) {
+        return shipment.getParcel().getAttachments()
                 .stream()
-                .map(dokument -> sdpDokument(dokument, forsendelse.getSpraakkode()))
+                .map(document -> sdpDokument(document, shipment.getLanguage()))
                 .collect(Collectors.toList());
     }
 
-    private SDPDokument sdpDokument(final Dokument dokument, final String spraakkode) {
+    private SDPDokument sdpDokument(final Document document, final String spraakkode) {
         return new SDPDokument(
-                getSdpTittel(dokument, spraakkode),
-                getSdpDokumentData(dokument),
-                dokument.getFilnavn(),
-                dokument.getMimeType());
+                getSdpTittel(document, spraakkode),
+                getSdpDokumentData(document),
+                document.getFilename(),
+                document.getMimeType());
     }
 
-    private SDPDokumentData getSdpDokumentData(Dokument dokument) {
-        return Optional.ofNullable(dokument.getMetadataDocument())
-                .map(d -> new SDPDokumentData(d.getFileName(), d.getMimeType()))
+    private SDPDokumentData getSdpDokumentData(Document document) {
+        return Optional.ofNullable(document.getMetadataDocument())
+                .map(d -> new SDPDokumentData(d.getFilename(), d.getMimeType()))
                 .orElse(null);
     }
 
-    private SDPTittel getSdpTittel(Dokument dokument, String spraakkode) {
-        return dokument.getTittel() != null ? new SDPTittel(dokument.getTittel(), spraakkode) : null;
+    private SDPTittel getSdpTittel(Document document, String spraakkode) {
+        return document.getTitle() != null ? new SDPTittel(document.getTitle(), spraakkode) : null;
     }
 
-    private SDPMottaker getSdpMottaker(Forsendelse forsendelse) {
-        return new SDPMottaker(getSdpPerson(forsendelse));
+    private SDPMottaker getSdpMottaker(Shipment shipment) {
+        return new SDPMottaker(getSdpPerson(shipment));
     }
 
-    private SDPPerson getSdpPerson(Forsendelse forsendelse) {
-        Mottaker mottaker = forsendelse.getStandardBusinessDocument().getDigitalpost().getMottaker();
-        return new SDPPerson(mottaker.getPersonidentifikator().getValue(), forsendelse.getPostkasseadresse());
+    private SDPPerson getSdpPerson(Shipment shipment) {
+        Mottaker mottaker = shipment.getStandardBusinessDocument().getDigitalpost().getMottaker();
+        return new SDPPerson(mottaker.getPersonidentifikator().getValue(), shipment.getMailbox());
     }
 
     private SDPAvsender sdpAvsender(Avsender avsender) {

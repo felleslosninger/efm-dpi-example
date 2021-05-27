@@ -23,8 +23,8 @@ public class CreateZip {
             zipOutputStream.setEncoding(StandardCharsets.UTF_8.name());
             zipOutputStream.setMethod(ZipArchiveOutputStream.DEFLATED);
             for (AsicEAttachable file : files) {
-                log.trace("Adding " + file.getFileName() + " to archive. Size in bytes before compression: " + file.getBytes().length);
-                ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getFileName());
+                log.trace("Adding " + file.getFilename() + " to archive. Size in bytes before compression: " + file.getBytes().length);
+                ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getFilename());
                 zipEntry.setSize(file.getBytes().length);
 
                 zipOutputStream.putArchiveEntry(zipEntry);

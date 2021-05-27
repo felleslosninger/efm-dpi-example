@@ -2,7 +2,7 @@ package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
-import no.digdir.dpi.client.domain.Forsendelse;
+import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.exception.SendException;
 import no.digdir.dpi.client.exception.XmlValideringException;
 import no.digdir.dpi.client.internal.domain.Manifest;
@@ -21,8 +21,8 @@ public class CreateManifest {
     private final Jaxb2Marshaller marshaller;
     private final SDPBuilder sdpBuilder;
 
-    public Manifest createManifest(Forsendelse forsendelse) {
-        SDPManifest sdpManifest = sdpBuilder.createManifest(forsendelse);
+    public Manifest createManifest(Shipment shipment) {
+        SDPManifest sdpManifest = sdpBuilder.createManifest(shipment);
 
         ByteArrayOutputStream manifestStream = new ByteArrayOutputStream();
         try {

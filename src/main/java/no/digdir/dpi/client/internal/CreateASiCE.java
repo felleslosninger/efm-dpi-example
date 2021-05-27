@@ -3,7 +3,7 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import no.digdir.dpi.client.domain.Forsendelse;
+import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.internal.domain.Archive;
 import no.digdir.dpi.client.internal.domain.ArchivedASiCE;
 import no.digdir.dpi.client.internal.domain.Manifest;
@@ -23,15 +23,15 @@ public class CreateASiCE {
     private final CreateSignature createSignature;
     private final CreateZip createZip;
 
-    public ArchivedASiCE createAsice(Forsendelse forsendelse) {
+    public ArchivedASiCE createAsice(Shipment shipment) {
         // Lag ASiC-E manifest
         log.info("Creating ASiC-E manifest");
-        Manifest manifest = createManifest.createManifest(forsendelse);
+        Manifest manifest = createManifest.createManifest(shipment);
 
         List<AsicEAttachable> files = new ArrayList<>();
-        files.add(forsendelse.getDokumentpakke().getHoveddokument());
-        files.addAll(forsendelse.getDokumentpakke().getVedlegg());
-        Optional.ofNullable(forsendelse.getDokumentpakke().getHoveddokument().getMetadataDocument()).ifPresent(files::add);
+        files.add(shipment.getParcel().getMainDocument());
+        files.addAll(shipment.getParcel().getAttachments());
+        Optional.ofNullable(shipment.getParcel().getMainDocument().getMetadataDocument()).ifPresent(files::add);
         files.add(manifest);
 
         // Lag signatur over alle filene i pakka

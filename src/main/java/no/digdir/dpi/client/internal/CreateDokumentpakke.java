@@ -2,7 +2,7 @@ package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.digdir.dpi.client.domain.Forsendelse;
+import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.internal.domain.ArchivedASiCE;
 import no.digdir.dpi.client.internal.domain.Billable;
 import no.digdir.dpi.client.internal.domain.CMSDocument;
@@ -17,13 +17,12 @@ public class CreateDokumentpakke {
     private final CreateASiCE createASiCE;
     private final CreateCMSDocument createCMS;
 
-    public Billable<Dokumentpakke> createDokumentpakke(Forsendelse forsendelse) {
+    public Billable<Dokumentpakke> createDokumentpakke(Shipment shipment) {
         log.info("Creating dokumentpakke");
-        ArchivedASiCE archivedASiCE = createASiCE.createAsice(forsendelse);
+        ArchivedASiCE archivedASiCE = createASiCE.createAsice(shipment);
 
         log.info("Creating CMS document");
-        CMSDocument cms = createCMS.createCMS(archivedASiCE.getBytes(), forsendelse.getMottakerSertifikat());
-
+        CMSDocument cms = createCMS.createCMS(archivedASiCE.getBytes(), shipment.getReceiverBusinessCertificate());
         Dokumentpakke dokumentpakke = new Dokumentpakke(cms.getBytes());
 
         return new Billable<>(dokumentpakke, archivedASiCE.getUnzippedContentBytesCount());

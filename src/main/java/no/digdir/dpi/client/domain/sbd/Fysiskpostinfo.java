@@ -2,7 +2,6 @@
 package no.digdir.dpi.client.domain.sbd;
 
 import lombok.Data;
-import no.digdir.dpi.client.domain.Retur;
 
 @Data
 public class Fysiskpostinfo {

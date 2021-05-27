@@ -1,7 +1,7 @@
 package no.digdir.dpi.client.domain;
 
 public interface AsicEAttachable {
-    String getFileName();
+    String getFilename();
 
     byte[] getBytes();
 

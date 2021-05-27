@@ -12,8 +12,8 @@ import java.util.List;
 public class DpiExampleInput {
 
     @NonNull Resource standardBusinessDocument;
-    @NonNull Resource hoveddokument;
-    @NonNull List<Resource> vedlegg;
-    @NonNull String postkasseadresse;
-    @NonNull Resource sertifikat;
+    @NonNull Resource mainDocument;
+    @NonNull List<Resource> attachments;
+    @NonNull String mailbox;
+    @NonNull Resource receiverCertificate;
 }

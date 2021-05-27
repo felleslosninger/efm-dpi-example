@@ -5,8 +5,8 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class Dokumentpakke {
+public class Parcel {
 
-    Dokument hoveddokument;
-    List<Dokument> vedlegg;
+    Document mainDocument;
+    List<Document> attachments;
 }

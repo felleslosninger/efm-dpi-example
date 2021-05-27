@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DpiExampleCommandLineRunner implements CommandLineRunner {
     private final Options options = new Options()
-            .addOption(Option.builder("p")
-                    .longOpt("postkasseadresse")
+            .addOption(Option.builder("m")
+                    .longOpt("mailbox")
                     .hasArg()
-                    .desc("Full postadresse.")
+                    .desc("Mailbox")
                     .build())
-            .addOption(Option.builder("s")
-                    .longOpt("sertifikat")
+            .addOption(Option.builder("c")
+                    .longOpt("certificate")
                     .required()
                     .hasArg()
-                    .desc("Fil med PEM sertifikatet til mottaker-organisasjonen.")
+                    .desc("The PEM business certificate of the receiving organisation.")
                     .build());
 
     private final CommandLineConverter commandLineConverter;

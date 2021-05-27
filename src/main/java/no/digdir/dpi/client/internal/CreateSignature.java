@@ -2,7 +2,7 @@ package no.digdir.dpi.client.internal;
 
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import no.digdir.dpi.client.domain.Noekkelpar;
+import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.exception.KonfigurasjonException;
 import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.exception.XmlKonfigurasjonException;
@@ -59,13 +59,13 @@ public class CreateSignature {
 
     private final DomUtils domUtils;
     private final CreateXAdESArtifacts createXAdESArtifacts;
-    private final Noekkelpar noekkelpar;
+    private final KeyPair keyPair;
     private final Schema schema;
 
-    public CreateSignature(DomUtils domUtils, CreateXAdESArtifacts createXAdESArtifacts, Noekkelpar noekkelpar) {
+    public CreateSignature(DomUtils domUtils, CreateXAdESArtifacts createXAdESArtifacts, KeyPair keyPair) {
         this.domUtils = domUtils;
         this.createXAdESArtifacts = createXAdESArtifacts;
-        this.noekkelpar = noekkelpar;
+        this.keyPair = keyPair;
 
         try {
             XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
@@ -88,13 +88,13 @@ public class CreateSignature {
     }
 
     public Signature createSignature(final List<AsicEAttachable> attachedFiles) throws XmlValideringException {
-        log.info("Signing ASiC-E documents using private key with alias " + noekkelpar.getAlias());
+        log.info("Signing ASiC-E documents using private key with alias " + keyPair.getAlias());
 
         XMLSignatureFactory xmlSignatureFactory = getSignatureFactory();
         SignatureMethod signatureMethod = getSignatureMethod(xmlSignatureFactory);
 
         // Generer XAdES-dokument som skal signeres, informasjon om nøkkel brukt til signering og informasjon om hva som er signert
-        XAdESArtifacts xadesArtifacts = createXAdESArtifacts.createArtifactsToSign(attachedFiles, noekkelpar.getVirksomhetssertifikat());
+        XAdESArtifacts xadesArtifacts = createXAdESArtifacts.createArtifactsToSign(attachedFiles, keyPair.getBusinessCertificate());
 
         // Lag signatur-referanse for alle filer
         List<Reference> references = references(xmlSignatureFactory, attachedFiles);
@@ -109,7 +109,7 @@ public class CreateSignature {
         ));
 
 
-        KeyInfo keyInfo = keyInfo(xmlSignatureFactory, noekkelpar.getVirksomhetssertifikatKjede());
+        KeyInfo keyInfo = keyInfo(xmlSignatureFactory, keyPair.getBusinessCertificateChain());
         SignedInfo signedInfo = xmlSignatureFactory.newSignedInfo(canonicalizationMethod, signatureMethod, references);
 
         // Definer signatur over XAdES-dokument
@@ -117,7 +117,7 @@ public class CreateSignature {
         XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, singletonList(xmlObject), "Signature", null);
 
         Document signedDocument = domUtils.newEmptyXmlDocument();
-        DOMSignContext signContext = new DOMSignContext(noekkelpar.getVirksomhetssertifikatPrivatnoekkel(), addXAdESSignaturesElement(signedDocument));
+        DOMSignContext signContext = new DOMSignContext(keyPair.getBusinessCertificatePrivateKey(), addXAdESSignaturesElement(signedDocument));
         signContext.setURIDereferencer(signedPropertiesURIDereferencer(xadesArtifacts, xmlSignatureFactory));
 
         try {
@@ -164,7 +164,7 @@ public class CreateSignature {
         for (int i = 0; i < files.size(); i++) {
             try {
                 String signatureElementId = "ID_" + i;
-                String uri = URLEncoder.encode(files.get(i).getFileName(), "UTF-8");
+                String uri = URLEncoder.encode(files.get(i).getFilename(), "UTF-8");
                 Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
                 result.add(reference);
             } catch (UnsupportedEncodingException e) {

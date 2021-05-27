@@ -2,10 +2,10 @@ package no.digdir.dpi.example;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import no.digdir.dpi.client.domain.Dokument;
-import no.digdir.dpi.client.domain.Dokumentpakke;
-import no.digdir.dpi.client.domain.Forsendelse;
-import no.digdir.dpi.client.domain.Sertifikat;
+import no.digdir.dpi.client.domain.BusinessCertificate;
+import no.digdir.dpi.client.domain.Document;
+import no.digdir.dpi.client.domain.Parcel;
+import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.exception.RuntimeIOException;
 import no.digdir.dpi.client.internal.DpiMapper;
@@ -24,13 +24,13 @@ public class ForsendelseFactory {
     private final FileExtensionMapper fileExtensionMapper;
     private final DpiMapper dpiMapper;
 
-    public Forsendelse getForsendelse(DpiExampleInput input) {
-        return new Forsendelse()
+    public Shipment getForsendelse(DpiExampleInput input) {
+        return new Shipment()
                 .setStandardBusinessDocument(getStandardBusinessDocument(input))
-                .setDokumentpakke(getDokumentpakke(input))
-                .setPostkasseadresse(input.getPostkasseadresse())
-                .setMottakerSertifikat(getMottakerSertifikat(input))
-                .setSpraakkode("NO");
+                .setParcel(getParcel(input))
+                .setMailbox(input.getMailbox())
+                .setReceiverBusinessCertificate(getReceiverCertificate(input))
+                .setLanguage("NO");
     }
 
     @SneakyThrows
@@ -38,28 +38,28 @@ public class ForsendelseFactory {
         return dpiMapper.readStandardBusinessDocument(input.getStandardBusinessDocument());
     }
 
-    private Sertifikat getMottakerSertifikat(DpiExampleInput input) {
-        try (InputStream inputStream = input.getSertifikat().getInputStream()) {
-            return Sertifikat.fraByteArray(IOUtils.toByteArray(inputStream));
+    private BusinessCertificate getReceiverCertificate(DpiExampleInput input) {
+        try (InputStream inputStream = input.getReceiverCertificate().getInputStream()) {
+            return BusinessCertificate.fraByteArray(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
     }
 
-    private Dokumentpakke getDokumentpakke(DpiExampleInput input) {
-        return new Dokumentpakke()
-                .setHoveddokument(getDocument(input.getHoveddokument()))
-                .setVedlegg(input.getVedlegg()
+    private Parcel getParcel(DpiExampleInput input) {
+        return new Parcel()
+                .setMainDocument(getDocument(input.getMainDocument()))
+                .setAttachments(input.getAttachments()
                         .stream()
                         .map(this::getDocument)
                         .collect(Collectors.toList()));
     }
 
-    private Dokument getDocument(Resource resource) {
-        return new Dokument()
-                .setTittel(resource.getDescription())
-                .setFilnavn(resource.getFilename())
-                .setDokument(getDokument(resource))
+    private Document getDocument(Resource resource) {
+        return new Document()
+                .setTitle(resource.getDescription())
+                .setFilename(resource.getFilename())
+                .setBytes(getDokument(resource))
                 .setMimeType(fileExtensionMapper.getMimetype(resource));
     }
 

@@ -7,7 +7,7 @@ import no.difi.move.common.cert.KeystoreProviderException;
 import no.difi.move.common.config.KeystoreProperties;
 import no.digdir.dpi.client.DpiClientConfig;
 import no.digdir.dpi.client.DpiClientProperties;
-import no.digdir.dpi.client.domain.Noekkelpar;
+import no.digdir.dpi.client.domain.KeyPair;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,16 +38,16 @@ public class DpiExampleConfig {
     }
 
     @Bean
-    public Noekkelpar noekkelpar() throws KeystoreProviderException {
+    public KeyPair noekkelpar() throws KeystoreProviderException {
         KeyStore keyStore = KeystoreProvider.loadKeyStore(properties.getKeystore());
 
-        return new Noekkelpar()
+        return new KeyPair()
                 .setKeyStore(keyStore)
                 .setTrustStore(getTrustStore()
                         .map(this::addTrustedCertificates)
                         .orElseGet(trustedCertificates::getTrustStore))
-                .setVirksomhetssertifikatAlias(properties.getKeystore().getAlias())
-                .setVirksomhetssertifikatPassword(properties.getKeystore().getPassword());
+                .setBusinessCertificateAlias(properties.getKeystore().getAlias())
+                .setBusinessCertificatePassword(properties.getKeystore().getPassword());
     }
 
     private Optional<KeyStore> getTrustStore() {

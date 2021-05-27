@@ -1,22 +1,16 @@
 package no.digdir.dpi.client.internal.domain;
 
+import lombok.Value;
 import no.digdir.dpi.client.domain.AsicEAttachable;
 
+@Value
 public class Signature implements AsicEAttachable {
 
-    private final byte[] xmlBytes;
-
-    public Signature(byte[] xmlBytes) {
-        this.xmlBytes = xmlBytes;
-    }
+    byte[] bytes;
 
     @Override
-    public String getFileName() {
+    public String getFilename() {
         return "META-INF/signatures.xml";
-    }
-
-    public byte[] getBytes() {
-        return xmlBytes;
     }
 
     @Override

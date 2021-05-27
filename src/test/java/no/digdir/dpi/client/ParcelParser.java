@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPDokument;
 import no.difi.begrep.sdp.schema_v10.SDPDokumentData;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
-import no.digdir.dpi.client.domain.Dokument;
-import no.digdir.dpi.client.domain.Dokumentpakke;
-import no.digdir.dpi.client.domain.MetadataDokument;
+import no.digdir.dpi.client.domain.Document;
+import no.digdir.dpi.client.domain.Parcel;
+import no.digdir.dpi.client.domain.MetadataDocument;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
@@ -20,54 +20,54 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class DokumentpakkeParser {
+public class ParcelParser {
 
     private final AsicParser asicParser;
     private final ManifestParser manifestParser;
 
-    public Dokumentpakke parse(InputStream asicInputStream) {
-        Map<String, Dokument> documents = new HashMap<>();
+    public Parcel parse(InputStream asicInputStream) {
+        Map<String, Document> documents = new HashMap<>();
         asicParser.parse(asicInputStream,
                 ((filename, inputStream) -> documents.put(filename, getDocument(filename, inputStream))));
 
         SDPManifest manifest = manifestParser.parse(new ByteArrayInputStream(
                 getDocument(documents, "manifest.xml")
-                        .getDokument()));
+                        .getBytes()));
 
-        return new Dokumentpakke()
-                .setHoveddokument(getDocument(documents, manifest.getHoveddokument()))
-                .setVedlegg(manifest.getVedleggs().stream()
+        return new Parcel()
+                .setMainDocument(getDocument(documents, manifest.getHoveddokument()))
+                .setAttachments(manifest.getVedleggs().stream()
                         .map(p -> getDocument(documents, p))
                         .collect(Collectors.toList())
                 );
     }
 
-    private Dokument getDocument(Map<String, Dokument> documents, String filename) {
+    private Document getDocument(Map<String, Document> documents, String filename) {
         return Optional.ofNullable(documents.get(filename))
                 .orElseThrow(() -> new Exception(String.format("No file named '%s' in ASICe!", filename)));
     }
 
-    private Dokument getDocument(Map<String, Dokument> documents, SDPDokument sdpDokument) {
+    private Document getDocument(Map<String, Document> documents, SDPDokument sdpDokument) {
         return getDocument(documents, sdpDokument.getHref())
                 .setMimeType(sdpDokument.getMime())
-                .setTittel(sdpDokument.getTittel().getValue())
+                .setTitle(sdpDokument.getTittel().getValue())
                 .setMetadataDocument(getMetadataDocument(sdpDokument.getData()));
     }
 
-    private MetadataDokument getMetadataDocument(SDPDokumentData data) {
+    private MetadataDocument getMetadataDocument(SDPDokumentData data) {
         if (data == null) {
             return null;
         }
-        return new MetadataDokument()
-                .setFilnavn(data.getHref())
+        return new MetadataDocument()
+                .setFilename(data.getHref())
                 .setMimeType(data.getMime());
     }
 
-    private Dokument getDocument(String filename, InputStream inputStream) {
+    private Document getDocument(String filename, InputStream inputStream) {
         try {
-            return new Dokument()
-                    .setFilnavn(filename)
-                    .setDokument(IOUtils.toByteArray(inputStream));
+            return new Document()
+                    .setFilename(filename)
+                    .setBytes(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
             throw new Exception(String.format("Couldn't read file named '%s", filename), e);
         }

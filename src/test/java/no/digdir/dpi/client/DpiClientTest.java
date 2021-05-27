@@ -5,9 +5,9 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import lombok.SneakyThrows;
-import no.digdir.dpi.client.domain.Dokumentpakke;
-import no.digdir.dpi.client.domain.Forsendelse;
-import no.digdir.dpi.client.domain.Noekkelpar;
+import no.digdir.dpi.client.domain.Parcel;
+import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.example.DpiExampleConfig;
 import no.digdir.dpi.example.DpiExampleInput;
 import no.digdir.dpi.example.ForsendelseFactory;
@@ -61,13 +61,13 @@ class DpiClientTest {
     private ForsendelseFactory forsendelseFactory;
 
     @Autowired
-    private Noekkelpar noekkelpar;
+    private KeyPair keyPair;
 
     @Autowired
     private DecryptCMSDocument decryptCMSDocument;
 
     @Autowired
-    private DokumentpakkeParser dokumentpakkeParser;
+    private ParcelParser parcelParser;
 
     @Value("classpath:/digital.sbd")
     private Resource digitalSbd;
@@ -92,16 +92,16 @@ class DpiClientTest {
                 .respond(response()
                         .withStatusCode(200));
 
-        Forsendelse forsendelse = forsendelseFactory.getForsendelse(DpiExampleInput.builder()
+        Shipment shipment = forsendelseFactory.getForsendelse(DpiExampleInput.builder()
                 .standardBusinessDocument(digitalSbd)
-                .hoveddokument(hoveddokument)
-                .vedlegg(Collections.singletonList(vedlegg))
-                .postkasseadresse("dummy")
-                .sertifikat(sertifikat)
+                .mainDocument(hoveddokument)
+                .attachments(Collections.singletonList(vedlegg))
+                .mailbox("dummy")
+                .receiverCertificate(sertifikat)
                 .build()
         );
 
-        dpiClient.send(forsendelse);
+        dpiClient.send(shipment);
 
         client.verify(requestDefinition);
 
@@ -110,7 +110,7 @@ class DpiClientTest {
 
         assertThat(mimeMultipart.getCount()).isEqualTo(2);
         assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0));
-        assertThatDocumentPackageIsCorrect(mimeMultipart.getBodyPart(1));
+        assertThatParcelIsCorrect(mimeMultipart.getBodyPart(1));
     }
 
     @SneakyThrows
@@ -120,7 +120,7 @@ class DpiClientTest {
 
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         JWSObject jwsObject = JWSObject.parse(IOUtils.toString(content, StandardCharsets.UTF_8));
-        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) noekkelpar.getVirksomhetssertifikat().getPublicKey());
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyPair.getBusinessCertificate().getPublicKey());
         assertThat(jwsObject.verify(verifier)).isTrue();
 
         JSONAssert.assertNotEquals(
@@ -130,21 +130,21 @@ class DpiClientTest {
     }
 
     @SneakyThrows
-    private void assertThatDocumentPackageIsCorrect(BodyPart sbdPart) {
+    private void assertThatParcelIsCorrect(BodyPart sbdPart) {
         assertThat(sbdPart.getContentType()).isEqualTo("application/cms");
         assertThat(sbdPart.getFileName()).isEqualTo("asic.cms");
 
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         InputStream asicInputStream = decryptCMSDocument.decrypt(content);
-        Dokumentpakke dokumentpakke = dokumentpakkeParser.parse(asicInputStream);
+        Parcel parcel = parcelParser.parse(asicInputStream);
 
-        assertThat(dokumentpakke.getHoveddokument().getFilnavn()).isEqualTo("svada.pdf");
-        assertThat(dokumentpakke.getHoveddokument().getMimeType()).isEqualTo("application/pdf");
-        assertThat(dokumentpakke.getHoveddokument().getDokument()).isEqualTo(getBytes(hoveddokument));
-        assertThat(dokumentpakke.getVedlegg()).hasSize(1);
-        assertThat(dokumentpakke.getVedlegg().get(0).getFilnavn()).isEqualTo("bilde.png");
-        assertThat(dokumentpakke.getVedlegg().get(0).getMimeType()).isEqualTo("image/png");
-        assertThat(dokumentpakke.getVedlegg().get(0).getDokument()).isEqualTo(getBytes(vedlegg));
+        assertThat(parcel.getMainDocument().getFilename()).isEqualTo("svada.pdf");
+        assertThat(parcel.getMainDocument().getMimeType()).isEqualTo("application/pdf");
+        assertThat(parcel.getMainDocument().getBytes()).isEqualTo(getBytes(hoveddokument));
+        assertThat(parcel.getAttachments()).hasSize(1);
+        assertThat(parcel.getAttachments().get(0).getFilename()).isEqualTo("bilde.png");
+        assertThat(parcel.getAttachments().get(0).getMimeType()).isEqualTo("image/png");
+        assertThat(parcel.getAttachments().get(0).getBytes()).isEqualTo(getBytes(vedlegg));
     }
 
     @SneakyThrows

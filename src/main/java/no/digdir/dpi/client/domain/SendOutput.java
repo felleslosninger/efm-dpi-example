@@ -3,7 +3,7 @@ package no.digdir.dpi.client.domain;
 import lombok.Value;
 
 @Value
-public class SendResultat {
+public class SendOutput {
 
-    long fakturerbareBytes;
+    long billableBytes;
 }

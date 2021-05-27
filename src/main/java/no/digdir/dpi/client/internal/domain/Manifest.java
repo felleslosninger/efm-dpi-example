@@ -7,16 +7,11 @@ import no.digdir.dpi.client.domain.AsicEAttachable;
 @Value
 public class Manifest implements AsicEAttachable {
 
-    byte[] xmlBytes;
+    byte[] bytes;
 
     @Override
-    public String getFileName() {
+    public String getFilename() {
         return "manifest.xml";
-    }
-
-    @Override
-    public byte[] getBytes() {
-        return xmlBytes;
     }
 
     @Override

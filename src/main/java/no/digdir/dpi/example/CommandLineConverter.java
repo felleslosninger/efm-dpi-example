@@ -20,10 +20,10 @@ public class CommandLineConverter {
 
         return DpiExampleInput.builder()
                 .standardBusinessDocument(resources.getStandardBusinessDocument())
-                .hoveddokument(resources.getHoveddokument())
-                .vedlegg(resources.getVedlegg())
-                .postkasseadresse(commandLine.getOptionValue("postkasseadresse", "Dummy"))
-                .sertifikat(new FileSystemResource(commandLine.getOptionValue("sertifikat")))
+                .mainDocument(resources.getMainDocument())
+                .attachments(resources.getAttachments())
+                .mailbox(commandLine.getOptionValue("mailbox", "Dummy"))
+                .receiverCertificate(new FileSystemResource(commandLine.getOptionValue("certificate")))
                 .build();
     }
 
@@ -40,11 +40,11 @@ public class CommandLineConverter {
             return resourceList.get(0);
         }
 
-        Resource getHoveddokument() {
+        Resource getMainDocument() {
             return resourceList.get(1);
         }
 
-        List<Resource> getVedlegg() {
+        List<Resource> getAttachments() {
             return resourceList.size() >= 2 ? resourceList.subList(2, resourceList.size()) : Collections.emptyList();
         }
     }

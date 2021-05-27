@@ -2,7 +2,7 @@ package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import no.digdir.dpi.client.domain.Sertifikat;
+import no.digdir.dpi.client.domain.BusinessCertificate;
 import org.etsi.uri._01903.v1_3.*;
 import org.springframework.stereotype.Component;
 import org.w3.xmldsig.X509IssuerSerialType;
@@ -26,7 +26,7 @@ public class CreateXAdESArtifacts {
 
     private final Clock clock;
 
-    XAdESArtifacts createArtifactsToSign(List<AsicEAttachable> files, Sertifikat sertifikat) {
+    XAdESArtifacts createArtifactsToSign(List<AsicEAttachable> files, BusinessCertificate sertifikat) {
         byte[] certificateDigestValue = sha1(sertifikat.getEncoded());
         X509Certificate certificate = sertifikat.getX509Certificate();
 

@@ -7,10 +7,13 @@ import java.io.ByteArrayInputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PublicKey;
-import java.security.cert.*;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 @Value
-public class Sertifikat {
+public class BusinessCertificate {
 
     X509Certificate x509Certificate;
 
@@ -26,20 +29,20 @@ public class Sertifikat {
         }
     }
 
-    public static Sertifikat fraByteArray(byte[] certificate) {
+    public static BusinessCertificate fraByteArray(byte[] certificate) {
         try {
-            return lagSertifikat(certificate);
+            return createBusinessCertificate(certificate);
         } catch (CertificateException e) {
             throw new SertifikatException("Kunne ikke lese sertifikat fra byte array", e);
         }
     }
 
-    public static Sertifikat fraCertificate(X509Certificate certificate) {
-        return new Sertifikat(certificate);
+    public static BusinessCertificate fraCertificate(X509Certificate certificate) {
+        return new BusinessCertificate(certificate);
     }
 
-    public static Sertifikat fraKeyStore(KeyStore keyStore, String alias) {
-        Certificate certificate;
+    public static BusinessCertificate fraKeyStore(KeyStore keyStore, String alias) {
+        java.security.cert.Certificate certificate;
         try {
             certificate = keyStore.getCertificate(alias);
         } catch (KeyStoreException e) {
@@ -54,13 +57,13 @@ public class Sertifikat {
             throw new SertifikatException("Klienten støtter kun X509-sertifikater. Fikk sertifikat av typen " + certificate.getClass().getSimpleName());
         }
 
-        return new Sertifikat((X509Certificate) certificate);
+        return new BusinessCertificate((X509Certificate) certificate);
     }
 
-    private static Sertifikat lagSertifikat(byte[] certificate) throws CertificateException {
+    private static BusinessCertificate createBusinessCertificate(byte[] certificate) throws CertificateException {
         X509Certificate x509Certificate = (X509Certificate) CertificateFactory
                 .getInstance("X509")
                 .generateCertificate(new ByteArrayInputStream(certificate));
-        return new Sertifikat(x509Certificate);
+        return new BusinessCertificate(x509Certificate);
     }
 }

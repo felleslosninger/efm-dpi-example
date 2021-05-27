@@ -5,7 +5,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
-import no.digdir.dpi.client.domain.Noekkelpar;
+import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.exception.KonfigurasjonException;
 import no.digdir.dpi.client.internal.*;
 import no.digipost.api.xml.Schemas;
@@ -59,11 +59,11 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public CreateJWT createJWT(DpiMapper dpiMapper, Noekkelpar noekkelpar) {
+    public CreateJWT createJWT(DpiMapper dpiMapper, KeyPair keyPair) {
         return new CreateJWT(
                 dpiMapper,
                 new JWSHeader.Builder(JWSAlgorithm.RS256).build(),
-                new RSASSASigner(noekkelpar.getVirksomhetssertifikatPrivatnoekkel()));
+                new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
     }
 
     @Bean

@@ -5,9 +5,10 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import lombok.SneakyThrows;
+import net.javacrumbs.jsonunit.core.Option;
+import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.example.DpiExampleConfig;
 import no.digdir.dpi.example.DpiExampleInput;
 import no.digdir.dpi.example.ShipmentFactory;
@@ -20,8 +21,6 @@ import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.RequestDefinition;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,6 +40,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.ConfigurationWhen.paths;
+import static net.javacrumbs.jsonunit.core.ConfigurationWhen.then;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -71,6 +73,9 @@ class DpiClientTest {
 
     @Value("classpath:/digital.sbd")
     private Resource digitalSbd;
+
+    @Value("classpath:/digital_ready_for_send.sbd")
+    private Resource digitalReadyForSendSbd;
 
     @Value("classpath:/svada.pdf")
     private Resource hoveddokument;
@@ -123,10 +128,9 @@ class DpiClientTest {
         JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyPair.getBusinessCertificate().getPublicKey());
         assertThat(jwsObject.verify(verifier)).isTrue();
 
-        JSONAssert.assertNotEquals(
-                IOUtils.toString(digitalSbd.getInputStream(), StandardCharsets.UTF_8),
-                jwsObject.getPayload().toString(),
-                JSONCompareMode.STRICT);
+        assertThatJson(jwsObject.getPayload().toString())
+                .when(paths("standardBusinessDocument.digitalpost.dokumentpakkefingeravtrykk.digestValue"), then(Option.IGNORING_VALUES))
+                .isEqualTo(IOUtils.toString(digitalReadyForSendSbd.getInputStream(), StandardCharsets.UTF_8));
     }
 
     @SneakyThrows

@@ -5,7 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.SendOutput;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.sbd.ParcelFingerprint;
+import no.digdir.dpi.client.domain.sbd.Dokumentpakkefingeravtrykk;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.CreateDokumentpakke;
 import no.digdir.dpi.client.internal.CreateJWT;
@@ -42,7 +42,7 @@ public class DpiClient {
         String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
 
         standardBusinessDocument.getDigitalpost()
-                .setParcelFingerprint(getParcelFingerprint(dokumentpakke))
+                .setDokumentpakkefingeravtrykk(getParcelFingerprint(dokumentpakke))
                 .setMaskinportentoken(maskinportenToken);
 
         String jwt = createJWT.createJWT(standardBusinessDocument);
@@ -61,8 +61,8 @@ public class DpiClient {
         return new SendOutput(billable.getBillableBytes());
     }
 
-    private ParcelFingerprint getParcelFingerprint(Dokumentpakke dokumentpakke) throws IOException {
-        return new ParcelFingerprint()
+    private Dokumentpakkefingeravtrykk getParcelFingerprint(Dokumentpakke dokumentpakke) throws IOException {
+        return new Dokumentpakkefingeravtrykk()
                 .setDigestMethod("http://www.w3.org/2001/04/xmlenc#sha256")
                 .setDigestValue(Base64.getEncoder().encodeToString(dokumentpakke.getSHA256()));
     }

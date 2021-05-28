@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -24,10 +25,10 @@ public class CreateZip {
             for (AsicEAttachable file : files) {
                 log.trace("Adding " + file.getFilename() + " to archive. Size in bytes before compression: " + file.getBytes().length);
                 ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getFilename());
-                zipEntry.setSize(file.getBytes().length);
-
                 zipOutputStream.putArchiveEntry(zipEntry);
-                IOUtils.write(file.getBytes(), zipOutputStream);
+                try(InputStream inputStream = file.getInputStream()) {
+                    IOUtils.copy(inputStream, zipOutputStream);
+                }
                 zipOutputStream.closeArchiveEntry();
             }
             zipOutputStream.finish();

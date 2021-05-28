@@ -8,7 +8,7 @@ public class Digitalpost {
 
     Avsender avsender;
     Mottaker mottaker;
-    ParcelFingerprint parcelFingerprint;
+    Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk;
     String maskinportentoken;
     Digitalpostinfo digitalpostinfo;
     Fysiskpostinfo fysiskpostinfo;

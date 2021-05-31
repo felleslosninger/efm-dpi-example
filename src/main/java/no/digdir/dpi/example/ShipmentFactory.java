@@ -58,16 +58,8 @@ public class ShipmentFactory {
         return new Document()
                 .setTitle(resource.getDescription())
                 .setFilename(resource.getFilename())
-                .setBytes(getBytes(resource))
+                .setResource(resource)
                 .setMimeType(fileExtensionMapper.getMimetype(resource));
-    }
-
-    private byte[] getBytes(Resource resource) {
-        try (InputStream is = resource.getInputStream()) {
-            return IOUtils.toByteArray(is);
-        } catch (IOException e) {
-            throw new Exception("Couldn't read resource", e);
-        }
     }
 
     private static class Exception extends RuntimeException {

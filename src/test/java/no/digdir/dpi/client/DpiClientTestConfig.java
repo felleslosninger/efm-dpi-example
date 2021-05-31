@@ -45,8 +45,8 @@ public class DpiClientTestConfig {
         return new AsicParser();
     }
 
-//    @Bean
-//    public DokumentpakkeParser dokumentpakkeParser(AsicParser asicParser) {
-//        return new DokumentpakkeParser(asicParser);
-//    }
+    @Bean
+    public InMemoryDocumentStorage inMemoryDocumentStorage() {
+        return new InMemoryDocumentStorage();
+    }
 }

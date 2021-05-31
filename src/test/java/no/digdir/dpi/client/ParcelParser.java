@@ -5,12 +5,11 @@ import no.difi.begrep.sdp.schema_v10.SDPDokument;
 import no.difi.begrep.sdp.schema_v10.SDPDokumentData;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Document;
-import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.MetadataDocument;
-import org.apache.commons.io.IOUtils;
+import no.digdir.dpi.client.domain.Parcel;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -24,15 +23,18 @@ public class ParcelParser {
 
     private final AsicParser asicParser;
     private final ManifestParser manifestParser;
+    private final DocumentStorage documentStorage;
 
-    public Parcel parse(InputStream asicInputStream) {
+    public Parcel parse(String messageId, InputStream asicInputStream) {
         Map<String, Document> documents = new HashMap<>();
         asicParser.parse(asicInputStream,
-                ((filename, inputStream) -> documents.put(filename, getDocument(filename, inputStream))));
+                ((filename, inputStream) -> {
+                    documentStorage.write(messageId, filename, inputStream);
+                    Resource resource = documentStorage.read(messageId, filename);
+                    documents.put(filename, getDocument(filename, resource));
+                }));
 
-        SDPManifest manifest = manifestParser.parse(new ByteArrayInputStream(
-                getDocument(documents, "manifest.xml")
-                        .getBytes()));
+        SDPManifest manifest = getSdpManifest(documents);
 
         return new Parcel()
                 .setMainDocument(getDocument(documents, manifest.getHoveddokument()))
@@ -40,6 +42,13 @@ public class ParcelParser {
                         .map(p -> getDocument(documents, p))
                         .collect(Collectors.toList())
                 );
+
+    }
+
+    private SDPManifest getSdpManifest(Map<String, Document> documents) {
+        return manifestParser.parse(
+                getDocument(documents, "manifest.xml")
+                        .getResource());
     }
 
     private Document getDocument(Map<String, Document> documents, String filename) {
@@ -63,14 +72,10 @@ public class ParcelParser {
                 .setMimeType(data.getMime());
     }
 
-    private Document getDocument(String filename, InputStream inputStream) {
-        try {
-            return new Document()
-                    .setFilename(filename)
-                    .setBytes(IOUtils.toByteArray(inputStream));
-        } catch (IOException e) {
-            throw new Exception(String.format("Couldn't read file named '%s", filename), e);
-        }
+    private Document getDocument(String filename, Resource resource) {
+        return new Document()
+                .setFilename(filename)
+                .setResource(resource);
     }
 
     private static class Exception extends RuntimeException {

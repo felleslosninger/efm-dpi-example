@@ -42,12 +42,6 @@ public class CreateASiCE {
         log.trace("Zipping ASiC-E files. Contains a total of " + files.size() + " files (including the generated manifest and signatures)");
         Archive archive = createZip.zipIt(files);
 
-        return new ArchivedASiCE(archive.getBytes(), getUnzippedContentBytesCount(files));
-    }
-
-    static long getUnzippedContentBytesCount(List<AsicEAttachable> attachables) {
-        return attachables.stream()
-                .mapToLong(a -> a.getBytes().length)
-                .sum();
+        return new ArchivedASiCE(archive.getBytes());
     }
 }

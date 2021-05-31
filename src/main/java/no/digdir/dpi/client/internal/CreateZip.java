@@ -26,7 +26,7 @@ public class CreateZip {
                 log.trace("Adding " + file.getFilename() + " to archive.");
                 ZipArchiveEntry zipEntry = new ZipArchiveEntry(file.getFilename());
                 zipOutputStream.putArchiveEntry(zipEntry);
-                try(InputStream inputStream = file.getInputStream()) {
+                try (InputStream inputStream = file.getResource().getInputStream()) {
                     IOUtils.copy(inputStream, zipOutputStream);
                 }
                 zipOutputStream.closeArchiveEntry();

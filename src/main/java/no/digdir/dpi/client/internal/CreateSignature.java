@@ -27,7 +27,6 @@ import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -158,11 +157,14 @@ public class CreateSignature {
         List<Reference> result = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             try {
-                String signatureElementId = "ID_" + i;
-                String uri = URLEncoder.encode(files.get(i).getFilename(), "UTF-8");
-                Reference reference = xmlSignatureFactory.newReference(uri, sha256DigestMethod, null, null, signatureElementId, sha256(files.get(i).getBytes()));
-                result.add(reference);
-            } catch (UnsupportedEncodingException e) {
+                result.add(xmlSignatureFactory.newReference(
+                        URLEncoder.encode(files.get(i).getFilename(), "UTF-8"),
+                        sha256DigestMethod,
+                        null,
+                        null,
+                        "ID_" + i,
+                        sha256(files.get(i).getResource().getInputStream())));
+            } catch (IOException e) {
                 throw new Exception("Failed to get references", e);
             }
 

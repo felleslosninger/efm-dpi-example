@@ -6,5 +6,4 @@ import lombok.Value;
 public class ArchivedASiCE {
 
     byte[] bytes;
-    long unzippedContentBytesCount;
 }

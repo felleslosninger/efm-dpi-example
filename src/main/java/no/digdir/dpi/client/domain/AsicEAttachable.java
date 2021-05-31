@@ -1,16 +1,11 @@
 package no.digdir.dpi.client.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import org.springframework.core.io.Resource;
 
 public interface AsicEAttachable {
     String getFilename();
 
-    byte[] getBytes();
-
-    default InputStream getInputStream() {
-        return new ByteArrayInputStream(getBytes());
-    }
+    Resource getResource();
 
     String getMimeType();
 }

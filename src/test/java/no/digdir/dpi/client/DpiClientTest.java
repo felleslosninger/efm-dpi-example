@@ -9,6 +9,8 @@ import net.javacrumbs.jsonunit.core.Option;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import no.digdir.dpi.client.internal.DpiMapper;
 import no.digdir.dpi.example.DpiExampleConfig;
 import no.digdir.dpi.example.DpiExampleInput;
 import no.digdir.dpi.example.ShipmentFactory;
@@ -72,6 +74,9 @@ class DpiClientTest {
     @Autowired
     private ParcelParser parcelParser;
 
+    @Autowired
+    private DpiMapper dpiMapper;
+
     @Value("classpath:/digital.sbd")
     private Resource digitalSbd;
 
@@ -129,12 +134,12 @@ class DpiClientTest {
         MimeMultipart mimeMultipart = getMimeMultipart(httpRequest);
 
         assertThat(mimeMultipart.getCount()).isEqualTo(2);
-        assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0));
-        assertThatParcelIsCorrect(mimeMultipart.getBodyPart(1));
+        StandardBusinessDocument standardBusinessDocument = assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0));
+        assertThatParcelIsCorrect(standardBusinessDocument, mimeMultipart.getBodyPart(1));
     }
 
     @SneakyThrows
-    private void assertThatStandardBusinessDocumentIsCorrect(BodyPart sbdPart) {
+    private StandardBusinessDocument assertThatStandardBusinessDocumentIsCorrect(BodyPart sbdPart) {
         assertThat(sbdPart.getContentType()).isEqualTo("application/jwt");
         assertThat(sbdPart.getFileName()).isEqualTo("sbd.jwt");
 
@@ -146,29 +151,30 @@ class DpiClientTest {
         assertThatJson(jwsObject.getPayload().toString())
                 .when(paths("standardBusinessDocument.digitalpost.dokumentpakkefingeravtrykk.digestValue"), then(Option.IGNORING_VALUES))
                 .isEqualTo(IOUtils.toString(digitalReadyForSendSbd.getInputStream(), StandardCharsets.UTF_8));
+
+        return dpiMapper.readStandardBusinessDocument(jwsObject.getPayload().toString());
     }
 
     @SneakyThrows
-    private void assertThatParcelIsCorrect(BodyPart sbdPart) {
+    private void assertThatParcelIsCorrect(StandardBusinessDocument standardBusinessDocument, BodyPart sbdPart) {
         assertThat(sbdPart.getContentType()).isEqualTo("application/cms");
         assertThat(sbdPart.getFileName()).isEqualTo("asic.cms");
 
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         InputStream asicInputStream = decryptCMSDocument.decrypt(content);
-        Parcel parcel = parcelParser.parse(asicInputStream);
+        Parcel parcel = parcelParser.parse(
+                standardBusinessDocument.getStandardBusinessDocumentHeader().getDocumentIdentification().getInstanceIdentifier().toString(),
+                asicInputStream);
 
         assertThat(parcel.getMainDocument().getFilename()).isEqualTo("svada.pdf");
         assertThat(parcel.getMainDocument().getMimeType()).isEqualTo("application/pdf");
-        assertThat(parcel.getMainDocument().getBytes()).isEqualTo(getBytes(hoveddokument));
+        assertThat(ResourceUtils.toByteArray(parcel.getMainDocument().getResource()))
+                .isEqualTo(ResourceUtils.toByteArray(hoveddokument));
         assertThat(parcel.getAttachments()).hasSize(1);
         assertThat(parcel.getAttachments().get(0).getFilename()).isEqualTo("bilde.png");
         assertThat(parcel.getAttachments().get(0).getMimeType()).isEqualTo("image/png");
-        assertThat(parcel.getAttachments().get(0).getBytes()).isEqualTo(getBytes(vedlegg));
-    }
-
-    @SneakyThrows
-    private byte[] getBytes(Resource resource) {
-        return IOUtils.toByteArray(resource.getInputStream());
+        assertThat(ResourceUtils.toByteArray(parcel.getAttachments().get(0).getResource()))
+                .isEqualTo(ResourceUtils.toByteArray(vedlegg));
     }
 
     private MimeMultipart getMimeMultipart(HttpRequest httpRequest) throws MessagingException {

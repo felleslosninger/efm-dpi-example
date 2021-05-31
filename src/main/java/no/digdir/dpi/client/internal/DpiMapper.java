@@ -32,6 +32,11 @@ public class DpiMapper {
     }
 
     @SneakyThrows
+    public StandardBusinessDocument readStandardBusinessDocument(String s) {
+        return objectMapper.readValue(s, StandardBusinessDocument.class);
+    }
+
+    @SneakyThrows
     public String writeStandardBusinessDocument(StandardBusinessDocument standardBusinessDocument) {
         return objectMapper.writeValueAsString(standardBusinessDocument);
     }

@@ -4,12 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.internal.domain.Archive;
-import no.digdir.dpi.client.internal.domain.ArchivedASiCE;
 import no.digdir.dpi.client.internal.domain.Manifest;
 import no.digdir.dpi.client.internal.domain.Signature;
 import org.springframework.stereotype.Component;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +22,7 @@ public class CreateASiCE {
     private final CreateSignature createSignature;
     private final CreateZip createZip;
 
-    public ArchivedASiCE createAsice(Shipment shipment) {
+    public void createAsice(Shipment shipment, OutputStream outputStream) {
         // Lag ASiC-E manifest
         log.info("Creating ASiC-E manifest");
         Manifest manifest = createManifest.createManifest(shipment);
@@ -40,8 +39,6 @@ public class CreateASiCE {
 
         // Zip filene
         log.trace("Zipping ASiC-E files. Contains a total of " + files.size() + " files (including the generated manifest and signatures)");
-        Archive archive = createZip.zipIt(files);
-
-        return new ArchivedASiCE(archive.getBytes());
+        createZip.zipIt(files, outputStream);
     }
 }

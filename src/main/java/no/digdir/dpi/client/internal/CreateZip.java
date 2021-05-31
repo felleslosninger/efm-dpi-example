@@ -2,15 +2,14 @@ package no.digdir.dpi.client.internal;
 
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import no.digdir.dpi.client.internal.domain.Archive;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -18,8 +17,8 @@ import java.util.List;
 @Component
 public class CreateZip {
 
-    public Archive zipIt(List<AsicEAttachable> files) {
-        try (ByteArrayOutputStream archive = new ByteArrayOutputStream(); ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(archive)) {
+    public void zipIt(List<AsicEAttachable> files, OutputStream outputStream) {
+        try (ZipArchiveOutputStream zipOutputStream = new ZipArchiveOutputStream(outputStream)) {
             zipOutputStream.setEncoding(StandardCharsets.UTF_8.name());
             zipOutputStream.setMethod(ZipArchiveOutputStream.DEFLATED);
             for (AsicEAttachable file : files) {
@@ -32,7 +31,6 @@ public class CreateZip {
                 zipOutputStream.closeArchiveEntry();
             }
             zipOutputStream.finish();
-            return new Archive(archive.toByteArray());
         } catch (IOException e) {
             throw new Exception("Failed to create XIP!", e);
         }

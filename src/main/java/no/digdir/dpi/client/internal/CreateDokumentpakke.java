@@ -3,10 +3,11 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.internal.domain.ArchivedASiCE;
-import no.digdir.dpi.client.internal.domain.CMSDocument;
 import no.digipost.api.representations.Dokumentpakke;
 import org.springframework.stereotype.Component;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 @Slf4j
 @Component
@@ -18,10 +19,15 @@ public class CreateDokumentpakke {
 
     public Dokumentpakke createDokumentpakke(Shipment shipment) {
         log.info("Creating dokumentpakke");
-        ArchivedASiCE archivedASiCE = createASiCE.createAsice(shipment);
+
+        ByteArrayOutputStream asice = new ByteArrayOutputStream();
+        createASiCE.createAsice(shipment, asice);
 
         log.info("Creating CMS document");
-        CMSDocument cms = createCMS.createCMS(archivedASiCE.getBytes(), shipment.getReceiverBusinessCertificate());
-        return new Dokumentpakke(cms.getBytes());
+
+        ByteArrayOutputStream cms = new ByteArrayOutputStream();
+
+        createCMS.createCMS(new ByteArrayInputStream(asice.toByteArray()), cms, shipment.getReceiverBusinessCertificate());
+        return new Dokumentpakke(cms.toByteArray());
     }
 }

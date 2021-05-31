@@ -14,9 +14,11 @@ dpi:
             scopes:
                 - dummy
             keystore:
-                path: ${dpi.client.keystore.path}
                 alias: ${dpi.client.keystore.alias}
+                lockProvider: ${dpi.client.keystore.lockProvider}
                 password: ${dpi.client.keystore.password}
+                path: ${dpi.client.keystore.path}
+                type: ${dpi.client.keystore.type}
 spring:
     main:
         web-application-type: NONE

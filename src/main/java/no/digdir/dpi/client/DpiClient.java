@@ -3,7 +3,6 @@ package no.digdir.dpi.client;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.digdir.dpi.client.domain.SendOutput;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.sbd.Dokumentpakkefingeravtrykk;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
@@ -11,7 +10,6 @@ import no.digdir.dpi.client.internal.CreateDokumentpakke;
 import no.digdir.dpi.client.internal.CreateJWT;
 import no.digdir.dpi.client.internal.CreateMaskinportenToken;
 import no.digdir.dpi.client.internal.CreateMultipart;
-import no.digdir.dpi.client.internal.domain.Billable;
 import no.digipost.api.representations.Dokumentpakke;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,9 +32,8 @@ public class DpiClient {
     private final WebClient webClient;
 
     @SneakyThrows
-    public SendOutput send(Shipment shipment) {
-        Billable<Dokumentpakke> billable = createDokumentpakke.createDokumentpakke(shipment);
-        Dokumentpakke dokumentpakke = billable.getEntity();
+    public void send(Shipment shipment) {
+        Dokumentpakke dokumentpakke = createDokumentpakke.createDokumentpakke(shipment);
         StandardBusinessDocument standardBusinessDocument = shipment.getStandardBusinessDocument();
 
         String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
@@ -57,8 +54,6 @@ public class DpiClient {
                 )
                 .toBodilessEntity()
                 .block();
-
-        return new SendOutput(billable.getBillableBytes());
     }
 
     private Dokumentpakkefingeravtrykk getParcelFingerprint(Dokumentpakke dokumentpakke) throws IOException {

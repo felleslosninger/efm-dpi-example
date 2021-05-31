@@ -25,7 +25,8 @@ import java.util.Optional;
         DpiClientProperties.class,
         TrustedCertificates.class,
         ShipmentFactory.class,
-        FileExtensionMapper.class
+        FileExtensionMapper.class,
+        TaskExecutorConfig.class
 })
 public class DpiExampleConfig {
 

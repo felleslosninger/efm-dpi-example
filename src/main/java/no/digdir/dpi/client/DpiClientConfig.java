@@ -42,13 +42,15 @@ public class DpiClientConfig {
     private final DpiClientProperties properties;
 
     @Bean
-    public DpiClient dpiClient(CreateDokumentpakke createDokumentpakke,
+    public DpiClient dpiClient(CreateCmsEncryptedAsice createCmsEncryptedAsice,
                                CreateMaskinportenToken createMaskinportenToken,
+                               CreateParcelFingerprint createParcelFingerprint,
                                CreateJWT createJWT,
                                CreateMultipart createMultipart) {
         return new DpiClient(
-                createDokumentpakke,
+                createCmsEncryptedAsice,
                 createMaskinportenToken,
+                createParcelFingerprint,
                 createJWT,
                 createMultipart,
                 WebClient.builder()

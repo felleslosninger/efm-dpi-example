@@ -7,6 +7,16 @@ dpi:
             path: classpath:/c1.jks
             type: jks
         uri: 'http://localhost:8900/dpi'
+        oidc:
+            url: 'http://localhost:8900/token'
+            audience: 'http://localhost:8900/'
+            clientId: 'dpi_example'
+            scopes:
+                - dummy
+            keystore:
+                path: ${dpi.client.keystore.path}
+                alias: ${dpi.client.keystore.alias}
+                password: ${dpi.client.keystore.password}
     server:
         keystore:
             alias: c2

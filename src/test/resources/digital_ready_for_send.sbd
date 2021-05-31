@@ -57,8 +57,9 @@
       },
       "dokumentpakkefingeravtrykk": {
         "digestMethod": "http://www.w3.org/2001/04/xmlenc#sha256",
-        "digestValue": "ZsktrYUT9PcZB76l3XZOJoIvg/1dxI9gf/mJZRscNG4="
+        "digestValue": "KYURRVXG1quZ034L6eP1bwe1EzIgGsVVVnJ4k5d0cV0="
       },
+      "maskinportentoken": "DummyMaskinportenToken",
       "digitalpostinfo": {
         "sikkerhetsnivaa": 3,
         "virkningsdato": "2021-01-01",

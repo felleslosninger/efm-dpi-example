@@ -6,12 +6,23 @@ import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
 import org.bouncycastle.cms.jcajce.JceKeyTransRecipient;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 @TestConfiguration
 @RequiredArgsConstructor
 public class DpiClientTestConfig {
 
     private final DpiServerProperties properties;
+
+    @Bean
+    @Primary
+    public Clock fixedClock() {
+        return Clock.fixed(Instant.parse("2021-05-21T11:19:57.12Z"), ZoneId.of("Europe/Oslo"));
+    }
 
     @Bean
     public KeystoreHelper serverKeystoreHelper() {

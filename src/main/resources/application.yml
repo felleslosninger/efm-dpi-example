@@ -7,6 +7,16 @@ dpi:
             path: ''
             type: jks
         uri: 'http://localhost:8081/dpi'
+        oidc:
+            url: 'https://ver2.maskinporten.no/token'
+            audience: 'https://ver2.maskinporten.no/'
+            clientId: 'dpi_test'
+            scopes:
+                - dummy
+            keystore:
+                path: ${dpi.client.keystore.path}
+                alias: ${dpi.client.keystore.alias}
+                password: ${dpi.client.keystore.password}
 spring:
     main:
         web-application-type: NONE

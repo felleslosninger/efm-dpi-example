@@ -20,6 +20,7 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpRequest;
+import org.mockserver.model.MediaType;
 import org.mockserver.model.RequestDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,6 +90,16 @@ class DpiClientTest {
     @Test
     @SneakyThrows
     void testSend(MockServerClient client) {
+
+        client.when(request()
+                .withMethod("POST")
+                .withPath("/token"))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
+                );
+
         HttpRequest requestDefinition = request()
                 .withMethod("POST")
                 .withPath("/dpi");
@@ -107,6 +118,10 @@ class DpiClientTest {
         );
 
         dpiClient.send(shipment);
+
+        client.verify(request()
+                .withMethod("POST")
+                .withPath("/token"));
 
         client.verify(requestDefinition);
 

@@ -6,6 +6,8 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
+import no.difi.move.common.oauth.JwtTokenClient;
+import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.internal.*;
 import no.digipost.api.xml.Schemas;
@@ -52,6 +54,17 @@ public class DpiClientConfig {
                 WebClient.builder()
                         .baseUrl(properties.getUri())
                         .build());
+    }
+
+    @Bean
+    public JwtTokenClient jwtTokenClient() {
+        return new JwtTokenClient(new JwtTokenConfig(
+                properties.getOidc().getClientId(),
+                properties.getOidc().getUrl().toString(),
+                properties.getOidc().getAudience(),
+                properties.getOidc().getScopes(),
+                properties.getOidc().getKeystore()
+        ));
     }
 
     @Bean

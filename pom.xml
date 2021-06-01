@@ -8,6 +8,18 @@
 		<version>2.4.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<repositories>
+        <repository>
+            <id>MavenArtifactFeed</id>
+            <url>https://pkgs.dev.azure.com/dificloud/_packaging/MavenArtifactFeed/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+	</repositories>
 	<groupId>no.digdir</groupId>
 	<artifactId>dpi-example</artifactId>
 	<version>0.0.1-SNAPSHOT</version>

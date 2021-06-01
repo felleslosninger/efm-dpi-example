@@ -19,6 +19,8 @@ dpi:
                 password: ${dpi.client.keystore.password}
                 path: ${dpi.client.keystore.path}
                 type: ${dpi.client.keystore.type}
+        temporary-file-threshold: 10000000
+        initialBufferSize: 100000
     server:
         keystore:
             alias: c2

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 
@@ -18,6 +19,10 @@ public class DpiClientProperties {
 
     @NotNull
     String uri;
+
+    int temporaryFileThreshold = 10 * 1000 * 1000;
+    File temporaryFileDirectory;
+    int initialBufferSize = 100000;
 
     @Valid
     private KeystoreProperties keystore;

@@ -4,32 +4,44 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;
 import no.digdir.dpi.client.domain.Shipment;
-import org.springframework.core.io.ByteArrayResource;
+import no.digdir.dpi.client.internal.pipes.Plumber;
+import no.digdir.dpi.client.internal.pipes.PromiseMaker;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class CreateCmsEncryptedAsice {
 
+    private final PromiseMaker promiseMaker;
+    private final InMemoryWithTempFileFallbackResourceFactory resourceFactory;
+    private final Plumber plumber;
     private final CreateASiCE createASiCE;
     private final CreateCMSDocument createCMS;
 
     public CmsEncryptedAsice createCmsEncryptedAsice(Shipment shipment) {
-        log.info("Creating ASiC-E");
+        return promiseMaker.promise(reject -> {
+            InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
 
-        ByteArrayOutputStream asice = new ByteArrayOutputStream();
-        createASiCE.createAsice(shipment, asice);
+            plumber.pipe("Creating ASiC-E", inlet -> createASiCE.createAsice(shipment, inlet), reject)
+                    .andFinally(outlet -> {
+                        try (OutputStream outputStream = cms.getOutputStream()) {
+                            createCMS.createCMS(outlet, outputStream, shipment.getReceiverBusinessCertificate());
+                        } catch (IOException e) {
+                            throw new CreateCmsEncryptedAsice.Exception("CMS encryption failed!", e);
+                        }
+                    });
 
-        log.info("CMS encrypting ASiC-E");
+            return new CmsEncryptedAsice(cms);
+        }).await();
+    }
 
-        ByteArrayOutputStream cms = new ByteArrayOutputStream();
-
-        createCMS.createCMS(new ByteArrayInputStream(asice.toByteArray()), cms, shipment.getReceiverBusinessCertificate());
-
-        return new CmsEncryptedAsice(new ByteArrayResource(cms.toByteArray()));
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

@@ -27,26 +27,27 @@ public class DpiClient {
 
     @SneakyThrows
     public void send(Shipment shipment) {
-        CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment);
-        StandardBusinessDocument standardBusinessDocument = shipment.getStandardBusinessDocument();
+        try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
+            StandardBusinessDocument standardBusinessDocument = shipment.getStandardBusinessDocument();
 
-        String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
+            String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
 
-        standardBusinessDocument.getDigitalpost()
-                .setDokumentpakkefingeravtrykk(createParcelFingerprint.createParcelFingerprint(cmsEncryptedAsice))
-                .setMaskinportentoken(maskinportenToken);
+            standardBusinessDocument.getDigitalpost()
+                    .setDokumentpakkefingeravtrykk(createParcelFingerprint.createParcelFingerprint(cmsEncryptedAsice))
+                    .setMaskinportentoken(maskinportenToken);
 
-        String jwt = createJWT.createJWT(standardBusinessDocument);
+            String jwt = createJWT.createJWT(standardBusinessDocument);
 
-        webClient.post()
-                .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", maskinportenToken))
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(jwt, cmsEncryptedAsice)))
-                .retrieve()
-                .onStatus(HttpStatus::isError, e -> e.bodyToMono(String.class)
-                        .flatMap(s -> Mono.error(new Exception("http status: " + e.statusCode() + ", body: " + s)))
-                )
-                .toBodilessEntity()
-                .block();
+            webClient.post()
+                    .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", maskinportenToken))
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(jwt, cmsEncryptedAsice)))
+                    .retrieve()
+                    .onStatus(HttpStatus::isError, e -> e.bodyToMono(String.class)
+                            .flatMap(s -> Mono.error(new Exception("http status: " + e.statusCode() + ", body: " + s)))
+                    )
+                    .toBodilessEntity()
+                    .block();
+        }
     }
 }

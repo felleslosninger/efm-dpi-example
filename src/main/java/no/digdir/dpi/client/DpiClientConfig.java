@@ -100,4 +100,13 @@ public class DpiClientConfig {
         marshaller.afterPropertiesSet();
         return marshaller;
     }
+
+    @Bean
+    public InMemoryWithTempFileFallbackResourceFactory inMemoryWithTempFileFallbackResourceFactory() {
+        return InMemoryWithTempFileFallbackResourceFactory.builder()
+                .threshold(properties.getTemporaryFileThreshold())
+                .directory(properties.getTemporaryFileDirectory())
+                .initialBufferSize(properties.getInitialBufferSize())
+                .build();
+    }
 }

@@ -77,6 +77,9 @@ class DpiClientTest {
     @Autowired
     private DpiMapper dpiMapper;
 
+    @Autowired
+    private JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator;
+
     @Value("classpath:/digital.sbd")
     private Resource digitalSbd;
 
@@ -147,6 +150,8 @@ class DpiClientTest {
         JWSObject jwsObject = JWSObject.parse(IOUtils.toString(content, StandardCharsets.UTF_8));
         JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyPair.getBusinessCertificate().getPublicKey());
         assertThat(jwsObject.verify(verifier)).isTrue();
+
+        jsonDigitalPostSchemaValidator.validate(jwsObject.getPayload().toJSONObject());
 
         assertThatJson(jwsObject.getPayload().toString())
                 .when(paths("standardBusinessDocument.digitalpost.dokumentpakkefingeravtrykk.digestValue"), then(Option.IGNORING_VALUES))

@@ -1,6 +1,10 @@
 package no.digdir.dpi.client;
 
 import lombok.RequiredArgsConstructor;
+import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
 import no.difi.move.common.cert.KeystoreHelper;
 import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
 import org.bouncycastle.cms.jcajce.JceKeyTransRecipient;
@@ -8,9 +12,11 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collections;
 
 @TestConfiguration
 @RequiredArgsConstructor
@@ -48,5 +54,12 @@ public class DpiClientTestConfig {
     @Bean
     public InMemoryDocumentStorage inMemoryDocumentStorage() {
         return new InMemoryDocumentStorage();
+    }
+
+    @Bean
+    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator() throws GenerationException {
+        SchemaStore schemaStore = new SchemaStore();
+        Schema schema = schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/digitalpost.schema.json"));
+        return new JsonDigitalPostSchemaValidator(new Validator(), schema);
     }
 }

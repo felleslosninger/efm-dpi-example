@@ -51,9 +51,10 @@
       },
       "mottaker": {
         "personidentifikator": {
-          "authority": "norsk_personidentifikator",
+          "authority": "iso3166-1-alfa2",
           "value": "17050411111"
-        }
+        },
+        "postkasseadresse": "dummy"
       },
       "dokumentpakkefingeravtrykk": {
         "digestMethod": "http://www.w3.org/2001/04/xmlenc#sha256",

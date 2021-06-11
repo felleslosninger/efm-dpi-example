@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class Retur {
 
-    AdresseInformasjon mottaker;
-    Retur.Returposthaandtering returposthaandtering;
+    private AdresseInformasjon mottaker;
+    private Retur.Returposthaandtering returposthaandtering;
 
     public enum Returposthaandtering {
 

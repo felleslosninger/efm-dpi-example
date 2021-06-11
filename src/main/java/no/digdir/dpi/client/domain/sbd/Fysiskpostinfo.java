@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class Fysiskpostinfo {
 
-    AdresseInformasjon mottaker;
-    Fysiskpostinfo.Utskriftstype utskriftstype;
-    Retur retur;
-    Fysiskpostinfo.Posttype posttype;
+    private AdresseInformasjon mottaker;
+    private Fysiskpostinfo.Utskriftstype utskriftstype;
+    private Retur retur;
+    private Fysiskpostinfo.Posttype posttype;
 
     public enum Posttype {
         A,

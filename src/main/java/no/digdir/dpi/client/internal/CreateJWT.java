@@ -7,20 +7,20 @@ import com.nimbusds.jose.Payload;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+
+import java.util.Map;
 
 
 @Slf4j
 @RequiredArgsConstructor
 public class CreateJWT {
 
-    private final DpiMapper dpiMapper;
     private final JWSHeader jwsHeader;
     private final JWSSigner jwsSigner;
 
     @SneakyThrows
-    public String createJWT(StandardBusinessDocument standardBusinessDocument) {
-        Payload payload = new Payload(dpiMapper.writeStandardBusinessDocument(standardBusinessDocument));
+    public String createJWT(Map<String, Object> jsonObject) {
+        Payload payload = new Payload(jsonObject);
         JWSObject jwsObject = new JWSObject(jwsHeader, payload);
         jwsObject.sign(jwsSigner);
         return jwsObject.serialize();

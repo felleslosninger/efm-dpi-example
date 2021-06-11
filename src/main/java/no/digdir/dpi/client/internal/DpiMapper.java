@@ -1,6 +1,7 @@
 package no.digdir.dpi.client.internal;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.Map;
 
 @Component
 public class DpiMapper {
@@ -37,7 +39,8 @@ public class DpiMapper {
     }
 
     @SneakyThrows
-    public String writeStandardBusinessDocument(StandardBusinessDocument standardBusinessDocument) {
-        return objectMapper.writeValueAsString(standardBusinessDocument);
+    public Map<String, Object> convertToJsonObject(StandardBusinessDocument standardBusinessDocument) {
+        return objectMapper.convertValue(standardBusinessDocument, new TypeReference<Map<String, Object>>() {
+        });
     }
 }

@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 public class Smsvarsel {
 
-    String mobiltelefonnummer;
-    String varslingstekst;
-    String spraak;
-    List<Integer> repetisjoner = new ArrayList<>();
+    private String mobiltelefonnummer;
+    private String varslingstekst;
+    private String spraak;
+    private List<Integer> repetisjoner = new ArrayList<>();
 }

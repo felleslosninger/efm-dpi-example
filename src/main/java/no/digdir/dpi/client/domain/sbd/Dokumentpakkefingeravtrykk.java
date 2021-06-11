@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class Dokumentpakkefingeravtrykk {
 
-    String digestMethod;
-    String digestValue;
+    private String digestMethod;
+    private String digestValue;
 }

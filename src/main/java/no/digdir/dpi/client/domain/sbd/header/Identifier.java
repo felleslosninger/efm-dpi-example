@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class Identifier {
 
-    String authority;
-    String value;
+    private String authority;
+    private String value;
 }

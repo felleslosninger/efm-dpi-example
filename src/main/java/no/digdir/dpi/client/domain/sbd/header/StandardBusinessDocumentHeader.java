@@ -8,9 +8,9 @@ import java.util.List;
 @Data
 public class StandardBusinessDocumentHeader {
 
-    String headerVersion = "1.0";
-    List<Actor> sender;
-    List<Actor> receiver;
-    DocumentIdentification documentIdentification;
-    BusinessScope businessScope;
+    private String headerVersion = "1.0";
+    private List<Actor> sender;
+    private List<Actor> receiver;
+    private DocumentIdentification documentIdentification;
+    private BusinessScope businessScope;
 }

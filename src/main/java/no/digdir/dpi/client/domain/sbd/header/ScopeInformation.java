@@ -11,5 +11,5 @@ import java.time.OffsetDateTime;
 public class ScopeInformation {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    OffsetDateTime expectedResponseDateTime;
+    private OffsetDateTime expectedResponseDateTime;
 }

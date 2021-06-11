@@ -11,11 +11,13 @@ import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.DpiMapper;
+import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
 import no.digdir.dpi.example.DpiExampleConfig;
 import no.digdir.dpi.example.DpiExampleInput;
 import no.digdir.dpi.example.ShipmentFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockserver.client.MockServerClient;
@@ -80,11 +82,17 @@ class DpiClientTest {
     @Autowired
     private JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator;
 
-    @Value("classpath:/digital.sbd")
+    @Value("classpath:/digital-sbd.json")
     private Resource digitalSbd;
 
-    @Value("classpath:/digital_ready_for_send.sbd")
+    @Value("classpath:/digital_ready_for_send-sbd.json")
     private Resource digitalReadyForSendSbd;
+
+    @Value("classpath:/fysisk-sbd.json")
+    private Resource fysiskSbd;
+
+    @Value("classpath:/fysisk_ready_for_send-sbd.json")
+    private Resource fysiskReadyForSendSbd;
 
     @Value("classpath:/svada.pdf")
     private Resource hoveddokument;
@@ -95,9 +103,23 @@ class DpiClientTest {
     @Value("classpath:/c2.cer")
     private Resource sertifikat;
 
+    @AfterEach
+    public void afterEach(MockServerClient client) {
+        client.reset();
+    }
+
     @Test
+    void testSendDigital(MockServerClient client) {
+        testSend(client, digitalSbd, digitalReadyForSendSbd);
+    }
+
+    @Test
+    void testSendFysisk(MockServerClient client) {
+        testSend(client, fysiskSbd, fysiskReadyForSendSbd);
+    }
+
     @SneakyThrows
-    void testSend(MockServerClient client) {
+    private void testSend(MockServerClient client, Resource in, Resource out) {
 
         client.when(request()
                 .withMethod("POST")
@@ -117,7 +139,7 @@ class DpiClientTest {
                         .withStatusCode(200));
 
         Shipment shipment = shipmentFactory.getShipment(DpiExampleInput.builder()
-                .standardBusinessDocument(digitalSbd)
+                .standardBusinessDocument(in)
                 .mainDocument(hoveddokument)
                 .attachments(Collections.singletonList(vedlegg))
                 .mailbox("dummy")
@@ -137,12 +159,12 @@ class DpiClientTest {
         MimeMultipart mimeMultipart = getMimeMultipart(httpRequest);
 
         assertThat(mimeMultipart.getCount()).isEqualTo(2);
-        StandardBusinessDocument standardBusinessDocument = assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0));
+        StandardBusinessDocument standardBusinessDocument = assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0), out);
         assertThatParcelIsCorrect(standardBusinessDocument, mimeMultipart.getBodyPart(1));
     }
 
     @SneakyThrows
-    private StandardBusinessDocument assertThatStandardBusinessDocumentIsCorrect(BodyPart sbdPart) {
+    private StandardBusinessDocument assertThatStandardBusinessDocumentIsCorrect(BodyPart sbdPart, Resource expectedSBD) {
         assertThat(sbdPart.getContentType()).isEqualTo("application/jwt");
         assertThat(sbdPart.getFileName()).isEqualTo("sbd.jwt");
 
@@ -155,7 +177,7 @@ class DpiClientTest {
 
         assertThatJson(jwsObject.getPayload().toString())
                 .when(paths("standardBusinessDocument.digitalpost.dokumentpakkefingeravtrykk.digestValue"), then(Option.IGNORING_VALUES))
-                .isEqualTo(IOUtils.toString(digitalReadyForSendSbd.getInputStream(), StandardCharsets.UTF_8));
+                .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
         return dpiMapper.readStandardBusinessDocument(jwsObject.getPayload().toString());
     }

@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class Varsler {
 
-    Epostvarsel epostvarsel;
-    Smsvarsel smsvarsel;
+    private Epostvarsel epostvarsel;
+    private Smsvarsel smsvarsel;
 }

@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,6 +13,8 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Slf4j
 @RequiredArgsConstructor
 public class DpiClient {
@@ -21,6 +22,7 @@ public class DpiClient {
     private final CreateCmsEncryptedAsice createCmsEncryptedAsice;
     private final CreateMaskinportenToken createMaskinportenToken;
     private final CreateParcelFingerprint createParcelFingerprint;
+    private final StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer;
     private final CreateJWT createJWT;
     private final CreateMultipart createMultipart;
     private final WebClient webClient;
@@ -28,15 +30,14 @@ public class DpiClient {
     @SneakyThrows
     public void send(Shipment shipment) {
         try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
-            StandardBusinessDocument standardBusinessDocument = shipment.getStandardBusinessDocument();
-
             String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
 
-            standardBusinessDocument.getDigitalpost()
-                    .setDokumentpakkefingeravtrykk(createParcelFingerprint.createParcelFingerprint(cmsEncryptedAsice))
-                    .setMaskinportentoken(maskinportenToken);
+            Map<String, Object> finalizedSBD = standBusinessDocumentJsonFinalizer.getFinalizedStandardBusinessDocumentAsJson(
+                    shipment.getStandardBusinessDocument(),
+                    createParcelFingerprint.createParcelFingerprint(cmsEncryptedAsice),
+                    maskinportenToken);
 
-            String jwt = createJWT.createJWT(standardBusinessDocument);
+            String jwt = createJWT.createJWT(finalizedSBD);
 
             webClient.post()
                     .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", maskinportenToken))

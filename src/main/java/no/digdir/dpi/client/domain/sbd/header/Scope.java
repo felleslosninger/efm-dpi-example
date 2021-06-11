@@ -9,8 +9,8 @@ import java.util.UUID;
 @Data
 public class Scope {
 
-    String type;
-    UUID instanceIdentifier;
-    String identifier;
-    List<ScopeInformation> scopeInformation;
+    private String type;
+    private UUID instanceIdentifier;
+    private  String identifier;
+    private List<ScopeInformation> scopeInformation;
 }

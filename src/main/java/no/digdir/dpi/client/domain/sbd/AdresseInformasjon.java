@@ -6,13 +6,13 @@ import lombok.Data;
 @Data
 public class AdresseInformasjon {
 
-    String navn;
-    String adresselinje1;
-    String adresselinje2;
-    String adresselinje3;
-    String adresselinje4;
-    String postnummer;
-    String poststed;
-    String land;
-    String landkode;
+    private String navn;
+    private String adresselinje1;
+    private String adresselinje2;
+    private String adresselinje3;
+    private String adresselinje4;
+    private String postnummer;
+    private String poststed;
+    private String land;
+    private String landkode;
 }

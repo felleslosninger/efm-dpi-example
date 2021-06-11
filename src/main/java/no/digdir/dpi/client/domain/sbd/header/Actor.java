@@ -7,5 +7,5 @@ import lombok.Data;
 @Data
 public class Actor {
 
-    Identifier identifier;
+    private Identifier identifier;
 }

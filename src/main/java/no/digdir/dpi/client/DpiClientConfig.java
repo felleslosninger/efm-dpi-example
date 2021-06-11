@@ -5,6 +5,10 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import net.jimblackler.jsonschemafriend.GenerationException;
+import net.jimblackler.jsonschemafriend.Schema;
+import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.Validator;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;
@@ -27,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.net.URI;
 import java.security.Security;
 
 @Configuration
@@ -45,12 +50,14 @@ public class DpiClientConfig {
     public DpiClient dpiClient(CreateCmsEncryptedAsice createCmsEncryptedAsice,
                                CreateMaskinportenToken createMaskinportenToken,
                                CreateParcelFingerprint createParcelFingerprint,
+                               StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer,
                                CreateJWT createJWT,
                                CreateMultipart createMultipart) {
         return new DpiClient(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
                 createParcelFingerprint,
+                standBusinessDocumentJsonFinalizer,
                 createJWT,
                 createMultipart,
                 WebClient.builder()
@@ -70,9 +77,8 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public CreateJWT createJWT(DpiMapper dpiMapper, KeyPair keyPair) {
+    public CreateJWT createJWT(KeyPair keyPair) {
         return new CreateJWT(
-                dpiMapper,
                 new JWSHeader.Builder(JWSAlgorithm.RS256).build(),
                 new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
     }
@@ -108,5 +114,12 @@ public class DpiClientConfig {
                 .directory(properties.getTemporaryFileDirectory())
                 .initialBufferSize(properties.getInitialBufferSize())
                 .build();
+    }
+
+    @Bean
+    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator() throws GenerationException {
+        SchemaStore schemaStore = new SchemaStore();
+        Schema schema = schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/digitalpost.schema.json"));
+        return new JsonDigitalPostSchemaValidator(new Validator(), schema);
     }
 }

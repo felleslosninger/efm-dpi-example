@@ -11,11 +11,11 @@ import java.util.UUID;
 @Data
 public class DocumentIdentification {
 
-    String standard;
-    String typeVersion;
-    UUID instanceIdentifier;
-    String type;
+    private String standard;
+    private String typeVersion;
+    private UUID instanceIdentifier;
+    private String type;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    OffsetDateTime creationDateAndTime;
+    private OffsetDateTime creationDateAndTime;
 }

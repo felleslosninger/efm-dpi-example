@@ -12,6 +12,6 @@ import no.digdir.dpi.client.domain.sbd.header.StandardBusinessDocumentHeader;
 @JsonTypeName(value = "standardBusinessDocument")
 public class StandardBusinessDocument {
 
-    StandardBusinessDocumentHeader standardBusinessDocumentHeader;
-    Digitalpost digitalpost;
+    private StandardBusinessDocumentHeader standardBusinessDocumentHeader;
+    private Digitalpost digitalpost;
 }

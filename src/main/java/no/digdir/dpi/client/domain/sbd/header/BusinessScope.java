@@ -9,5 +9,5 @@ import java.util.List;
 @Data
 public class BusinessScope {
 
-    List<Scope> scope;
+    private List<Scope> scope;
 }

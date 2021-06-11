@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class Mottaker {
 
-    Identifikator personidentifikator;
-    String postkasseadresse;
+    private Identifikator personidentifikator;
+    private String postkasseadresse;
 }

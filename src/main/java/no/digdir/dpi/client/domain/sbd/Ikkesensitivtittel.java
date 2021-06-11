@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class Ikkesensitivtittel {
 
-    String tittel;
-    String spraak;
+    private String tittel;
+    private String spraak;
 }

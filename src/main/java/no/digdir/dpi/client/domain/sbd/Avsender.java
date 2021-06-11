@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Avsender {
 
-    Identifikator virksomhetsidentifikator;
-    String avsenderidentifikator;
-    String fakturaReferanse;
+    private Identifikator virksomhetsidentifikator;
+    private String avsenderidentifikator;
+    private String fakturaReferanse;
 }

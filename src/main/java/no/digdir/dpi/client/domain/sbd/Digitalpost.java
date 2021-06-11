@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class Digitalpost {
 
-    Avsender avsender;
-    Mottaker mottaker;
-    Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk;
-    String maskinportentoken;
-    Digitalpostinfo digitalpostinfo;
-    Fysiskpostinfo fysiskpostinfo;
+    private Avsender avsender;
+    private Mottaker mottaker;
+    private Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk;
+    private String maskinportentoken;
+    private Digitalpostinfo digitalpostinfo;
+    private Fysiskpostinfo fysiskpostinfo;
 }

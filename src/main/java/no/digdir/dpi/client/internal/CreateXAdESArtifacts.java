@@ -5,7 +5,7 @@ import no.digdir.dpi.client.domain.AsicEAttachable;
 import no.digdir.dpi.client.domain.BusinessCertificate;
 import org.etsi.uri._01903.v1_3.*;
 import org.springframework.stereotype.Component;
-import org.w3.xmldsig.X509IssuerSerialType;
+import sdp.org.w3.xmldsig.X509IssuerSerialType;
 
 import javax.xml.crypto.dsig.DigestMethod;
 import java.security.cert.X509Certificate;
@@ -22,7 +22,7 @@ import static org.apache.commons.codec.digest.DigestUtils.sha1;
 @RequiredArgsConstructor
 public class CreateXAdESArtifacts {
 
-    private static final org.w3.xmldsig.DigestMethod sha1DigestMethod = new org.w3.xmldsig.DigestMethod(emptyList(), DigestMethod.SHA1);
+    private static final sdp.org.w3.xmldsig.DigestMethod sha1DigestMethod = new sdp.org.w3.xmldsig.DigestMethod(emptyList(), DigestMethod.SHA1);
 
     private final Clock clock;
 

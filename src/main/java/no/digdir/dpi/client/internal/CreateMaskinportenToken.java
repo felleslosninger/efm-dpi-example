@@ -11,6 +11,7 @@ public class CreateMaskinportenToken {
     private final JwtTokenClient jwtTokenClient;
 
     public String getMaskinportenToken() {
+        // todo: bytt med en tilfeldig streng
         return jwtTokenClient.fetchToken().getAccessToken();
     }
 }

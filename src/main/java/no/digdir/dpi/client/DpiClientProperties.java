@@ -45,4 +45,14 @@ public class DpiClientProperties {
         @NestedConfigurationProperty
         private KeystoreProperties keystore;
     }
+    
+    @Valid
+    private Oxalis oxalis;
+    
+    @Data
+    public static class Oxalis {
+        @NotNull
+        private String receiverCert;
+    }
+    
 }

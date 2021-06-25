@@ -1,0 +1,29 @@
+dpi:
+    client:
+        keystore:
+            alias: 'cert'
+            lockProvider: false
+            password: ''
+            path: 'file://${OXALIS_HOME}/conf/peppol_certificate.p12'
+            type: jks
+        uri: 'http://localhost:8080/as4'
+        oidc:
+            url: 'https://ver2.maskinporten.no/token'
+            audience: 'https://ver2.maskinporten.no/'
+            clientId: 'dpi_test'
+            scopes:
+                - dummy
+            keystore:
+                alias: ${dpi.client.keystore.alias}
+                lockProvider: ${dpi.client.keystore.lockProvider}
+                password: ${dpi.client.keystore.password}
+                path: ${dpi.client.keystore.path}
+                type: ${dpi.client.keystore.type}
+        temporary-file-threshold: 10000000
+        initialBufferSize: 100000
+        
+        oxalis:
+            receiverCert: ${user.home}/.oxalis/peppol_certificate.pem                  
+spring:
+    main:
+        web-application-type: NONE

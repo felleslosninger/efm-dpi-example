@@ -9,11 +9,20 @@ import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.Validator;
+import network.oxalis.outbound.OxalisOutboundComponent;
+import network.oxalis.sniffer.sbdh.SbdhWrapper;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
-import no.digdir.dpi.client.internal.*;
+import no.digdir.dpi.client.internal.CreateCMSDocument;
+import no.digdir.dpi.client.internal.CreateCmsEncryptedAsice;
+import no.digdir.dpi.client.internal.CreateJWT;
+import no.digdir.dpi.client.internal.CreateMaskinportenToken;
+import no.digdir.dpi.client.internal.CreateParcelFingerprint;
+import no.digdir.dpi.client.internal.InMemoryWithTempFileFallbackResourceFactory;
+import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
+import no.digdir.dpi.client.internal.StandBusinessDocumentJsonFinalizer;
 import no.digipost.api.xml.Schemas;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
@@ -29,8 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.web.reactive.function.client.WebClient;
-
 import java.net.URI;
 import java.security.Security;
 
@@ -52,19 +59,30 @@ public class DpiClientConfig {
                                CreateParcelFingerprint createParcelFingerprint,
                                StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer,
                                CreateJWT createJWT,
-                               CreateMultipart createMultipart) {
+                               OxalisOutboundComponent oxalisOutboundComponent,
+                               SbdhWrapper sbdhWrapper) {
         return new DpiClient(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
                 createParcelFingerprint,
                 standBusinessDocumentJsonFinalizer,
                 createJWT,
-                createMultipart,
-                WebClient.builder()
-                        .baseUrl(properties.getUri())
-                        .build());
+                oxalisOutboundComponent,
+                sbdhWrapper,
+                properties
+        );
+    }
+    
+    @Bean
+    public SbdhWrapper sbdhWrapper() {
+        return new SbdhWrapper();
     }
 
+    @Bean
+    public OxalisOutboundComponent oxalisOutboundComponent() {
+        return new OxalisOutboundComponent();
+    }
+    
     @Bean
     public JwtTokenClient jwtTokenClient() {
         return new JwtTokenClient(new JwtTokenConfig(

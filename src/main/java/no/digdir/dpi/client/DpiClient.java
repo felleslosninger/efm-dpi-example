@@ -26,19 +26,17 @@ import no.digdir.dpi.client.internal.CreateMaskinportenToken;
 import no.digdir.dpi.client.internal.CreateParcelFingerprint;
 import no.digdir.dpi.client.internal.StandBusinessDocumentJsonFinalizer;
 import org.apache.commons.io.IOUtils;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Base64;
@@ -56,6 +54,7 @@ public class DpiClient {
     private final CreateJWT createJWT;
     private final OxalisOutboundComponent oxalisOutboundComponent;
     private final SbdhWrapper sbdhWrapper;
+    private final DpiClientProperties config;
 
     @SneakyThrows
     public void send(Shipment shipment) {
@@ -86,8 +85,8 @@ public class DpiClient {
                     "0192:123456789",
                     "0192:987654321",
                     new ByteArrayInputStream(baos.toByteArray()),
-                    URI.create("http://localhost:8082/as4"), // Dette er URL mot din lokale oxalis-inbound
-                    getDestCert(),
+                    URI.create(config.getUri()), // Dette er URL mot din lokale oxalis-inbound
+                    getDestCert(config.getOxalis().getReceiverCert()),
                     // todo: Digitalpost dokumenttype
                     DocumentTypeIdentifier.of("${CreditNote.CREDIT_NOTE_NAMESPACE}::CreditNote##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1"),
                     ProcessIdentifier.of("urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"),
@@ -100,18 +99,13 @@ public class DpiClient {
         }
     }
     
-    private X509Certificate getDestCert() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
-        // todo: legg inn filsti til peppol_keystore.p12
-        InputStream inStream = new FileInputStream("your_string_here");
-
-        KeyStore ks = KeyStore.getInstance("PKCS12");
-        // todo: legg inn passord for oxalis-keystore
-        ks.load(inStream, "your_string_here".toCharArray());
-
-        String alias = ks.aliases().nextElement();
-        return (X509Certificate) ks.getCertificate(alias);
+    private static final X509Certificate getDestCert(String certFile) throws CertificateException, FileNotFoundException, IOException {
+        CertificateFactory certFact = CertificateFactory.getInstance("X.509");
+        try (InputStream is = new FileInputStream(certFile)) {
+            return (X509Certificate) certFact.generateCertificate(is);
+        }
     }
-
+    
     private TransmissionRequest createTransmissionRequest(RequestParameters parameters) throws OxalisContentException, OxalisTransmissionException {
         TransmissionRequestBuilder requestBuilder = oxalisOutboundComponent.getTransmissionRequestBuilder();
         requestBuilder.setTransmissionBuilderOverride(true);

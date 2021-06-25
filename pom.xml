@@ -247,6 +247,12 @@
             <groupId>network.oxalis</groupId>
             <artifactId>oxalis-outbound</artifactId>
             <version>5.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>network.oxalis</groupId>
+                    <artifactId>oxalis-as2</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>network.oxalis</groupId>

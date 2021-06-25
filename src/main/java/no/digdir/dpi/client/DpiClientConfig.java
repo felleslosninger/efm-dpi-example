@@ -19,7 +19,6 @@ import no.digdir.dpi.client.internal.CreateCMSDocument;
 import no.digdir.dpi.client.internal.CreateCmsEncryptedAsice;
 import no.digdir.dpi.client.internal.CreateJWT;
 import no.digdir.dpi.client.internal.CreateMaskinportenToken;
-import no.digdir.dpi.client.internal.CreateMultipart;
 import no.digdir.dpi.client.internal.CreateParcelFingerprint;
 import no.digdir.dpi.client.internal.InMemoryWithTempFileFallbackResourceFactory;
 import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
@@ -39,8 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.web.reactive.function.client.WebClient;
-
 import java.net.URI;
 import java.security.Security;
 
@@ -71,7 +68,8 @@ public class DpiClientConfig {
                 standBusinessDocumentJsonFinalizer,
                 createJWT,
                 oxalisOutboundComponent,
-                sbdhWrapper
+                sbdhWrapper,
+                properties
         );
     }
     

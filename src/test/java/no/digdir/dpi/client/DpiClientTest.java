@@ -3,6 +3,7 @@ package no.digdir.dpi.client;
 
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
@@ -88,11 +89,11 @@ class DpiClientTest {
     @Value("classpath:/digital_ready_for_send-sbd.json")
     private Resource digitalReadyForSendSbd;
 
-    @Value("classpath:/fysisk-sbd.json")
-    private Resource fysiskSbd;
+    @Value("classpath:/utskrift-sbd.json")
+    private Resource utskriftSbd;
 
-    @Value("classpath:/fysisk_ready_for_send-sbd.json")
-    private Resource fysiskReadyForSendSbd;
+    @Value("classpath:/utskrift_ready_for_send-sbd.json")
+    private Resource utskriftReadyForSendSbd;
 
     @Value("classpath:/svada.pdf")
     private Resource hoveddokument;
@@ -115,7 +116,7 @@ class DpiClientTest {
 
     @Test
     void testSendFysisk(MockServerClient client) {
-        testSend(client, fysiskSbd, fysiskReadyForSendSbd);
+        testSend(client, utskriftSbd, utskriftReadyForSendSbd);
     }
 
     @SneakyThrows
@@ -173,13 +174,17 @@ class DpiClientTest {
         JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyPair.getBusinessCertificate().getPublicKey());
         assertThat(jwsObject.verify(verifier)).isTrue();
 
-        jsonDigitalPostSchemaValidator.validate(jwsObject.getPayload().toJSONObject());
+        Payload payload = jwsObject.getPayload();
 
-        assertThatJson(jwsObject.getPayload().toString())
-                .when(paths("standardBusinessDocument.digitalpost.dokumentpakkefingeravtrykk.digestValue"), then(Option.IGNORING_VALUES))
+        StandardBusinessDocument standardBusinessDocument = dpiMapper.readStandardBusinessDocument(payload.toString());
+
+        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), standardBusinessDocument.getType());
+
+        assertThatJson(payload.toString())
+                .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", standardBusinessDocument.getMessage().getMessageType().getType())), then(Option.IGNORING_VALUES))
                 .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
-        return dpiMapper.readStandardBusinessDocument(jwsObject.getPayload().toString());
+        return standardBusinessDocument;
     }
 
     @SneakyThrows

@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.AsicEAttachable;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.internal.domain.Signature;
-import no.digipost.api.xml.Schemas;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.xml.validation.SchemaLoaderUtils;

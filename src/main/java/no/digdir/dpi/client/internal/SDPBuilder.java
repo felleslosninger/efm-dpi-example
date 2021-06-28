@@ -3,9 +3,7 @@ package no.digdir.dpi.client.internal;
 import no.difi.begrep.sdp.schema_v10.*;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.sbd.Avsender;
-import no.digdir.dpi.client.domain.sbd.Identifikator;
-import no.digdir.dpi.client.domain.sbd.Mottaker;
+import no.digdir.dpi.client.domain.sbd.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,22 +14,23 @@ import java.util.stream.Collectors;
 public class SDPBuilder {
 
     public SDPManifest createManifest(Shipment shipment) {
-        return new SDPManifest(
-                getSdpMottaker(shipment),
-                sdpAvsender(getAvsender(shipment)),
-                getHoveddokument(shipment),
-                getSdpVedlegg(shipment), null);
+        return SDPManifest.builder()
+                .withMottaker(getMottaker(shipment))
+                .withAvsender(getAvsender(shipment))
+                .withHoveddokument(getHoveddokument(shipment))
+                .withVedleggs(getVedlegg(shipment))
+                .build();
     }
 
-    private Avsender getAvsender(Shipment shipment) {
-        return shipment.getStandardBusinessDocument().getDigitalpost().getAvsender();
+    private SDPAvsender getAvsender(Shipment shipment) {
+        return getAvsender(shipment.getStandardBusinessDocument().getMessage().getAvsender());
     }
 
     private SDPDokument getHoveddokument(Shipment shipment) {
         return sdpDokument(shipment.getParcel().getMainDocument(), shipment.getLanguage());
     }
 
-    private List<SDPDokument> getSdpVedlegg(Shipment shipment) {
+    private List<SDPDokument> getVedlegg(Shipment shipment) {
         return shipment.getParcel().getAttachments()
                 .stream()
                 .map(document -> sdpDokument(document, shipment.getLanguage()))
@@ -39,40 +38,71 @@ public class SDPBuilder {
     }
 
     private SDPDokument sdpDokument(final Document document, final String spraakkode) {
-        return new SDPDokument(
-                getSdpTittel(document, spraakkode),
-                getSdpDokumentData(document),
-                document.getFilename(),
-                document.getMimeType());
+        return SDPDokument.builder()
+                .withTittel(getTittel(document, spraakkode))
+                .withData(getDokumentData(document))
+                .withHref(document.getFilename())
+                .withMime(document.getMimeType())
+                .build();
     }
 
-    private SDPDokumentData getSdpDokumentData(Document document) {
+    private SDPDokumentData getDokumentData(Document document) {
         return Optional.ofNullable(document.getMetadataDocument())
-                .map(d -> new SDPDokumentData(d.getFilename(), d.getMimeType()))
+                .map(d -> SDPDokumentData.builder()
+                        .withHref(d.getFilename())
+                        .withMime(d.getMimeType())
+                        .build())
                 .orElse(null);
     }
 
-    private SDPTittel getSdpTittel(Document document, String spraakkode) {
-        return document.getTitle() != null ? new SDPTittel(document.getTitle(), spraakkode) : null;
+    private SDPTittel getTittel(Document document, String spraakkode) {
+        return document.getTitle() != null ? SDPTittel.builder()
+                .withValue(document.getTitle())
+                .withLang(spraakkode)
+                .build() : null;
     }
 
-    private SDPMottaker getSdpMottaker(Shipment shipment) {
-        return new SDPMottaker(getSdpPerson(shipment));
+    private SDPMottaker getMottaker(Shipment shipment) {
+        return SDPMottaker.builder()
+                .withPerson(getPerson(shipment))
+                .build();
     }
 
-    private SDPPerson getSdpPerson(Shipment shipment) {
-        Mottaker mottaker = shipment.getStandardBusinessDocument().getDigitalpost().getMottaker();
-        return new SDPPerson(mottaker.getPersonidentifikator().getValue(), shipment.getMailbox());
+    private SDPPerson getPerson(Shipment shipment) {
+        Message<? extends Message<?>> message = shipment.getStandardBusinessDocument().getMessage();
+
+        if (message instanceof Digital) {
+            Digital digital = (Digital) message;
+            DigitalMottaker mottaker = digital.getMottaker();
+
+            return SDPPerson.builder()
+                    .withPersonidentifikator(getPersonidentifikator(mottaker))
+                    .withPostkasseadresse(mottaker.getPostkasseadresse())
+                    .build();
+        }
+
+        return null;
     }
 
-    private SDPAvsender sdpAvsender(Avsender avsender) {
-        return new SDPAvsender(
-                getSdpOrganisasjon(avsender.getVirksomhetsidentifikator()),
-                avsender.getAvsenderidentifikator(),
-                avsender.getFakturaReferanse());
+    private String getPersonidentifikator(DigitalMottaker mottaker) {
+        return Optional.ofNullable(mottaker.getPersonidentifikator().getValue())
+                .map(p -> PersonidentifikatorValue.of(p).getIdentifier())
+                .orElse(null);
     }
 
-    private SDPOrganisasjon getSdpOrganisasjon(Identifikator identifikator) {
-        return new SDPOrganisasjon(identifikator.getValue(), SDPIso6523Authority.fromValue(identifikator.getAuthority()));
+    private SDPAvsender getAvsender(Avsender avsender) {
+        return SDPAvsender.builder()
+                .withOrganisasjon(getOrganisasjon(avsender.getVirksomhetsidentifikator()))
+                .withAvsenderidentifikator(avsender.getAvsenderidentifikator())
+                .withFakturaReferanse(avsender.getFakturaReferanse())
+                .build();
     }
+
+    private SDPOrganisasjon getOrganisasjon(Identifikator identifikator) {
+        return SDPOrganisasjon.builder()
+                .withValue(identifikator.getValue())
+                .withAuthority(SDPIso6523Authority.fromValue(identifikator.getAuthority()))
+                .build();
+    }
+
 }

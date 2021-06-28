@@ -1,17 +1,31 @@
 
 package no.digdir.dpi.client.domain.sbd;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import no.digdir.dpi.client.domain.sbd.header.StandardBusinessDocumentHeader;
 
+import java.util.Optional;
+
 
 @Data
-@JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME)
-@JsonTypeName(value = "standardBusinessDocument")
+@JsonSerialize(using = StandardBusinessDocumentSerializer.class)
 public class StandardBusinessDocument {
 
     private StandardBusinessDocumentHeader standardBusinessDocumentHeader;
-    private Digitalpost digitalpost;
+
+    @JsonDeserialize(using = MessageDeserializer.class)
+    @JsonAlias({"digital", "utskrift"})
+    private Message<? extends Message<?>> message;
+
+    @JsonIgnore
+    public String getType() {
+        return Optional.of(standardBusinessDocumentHeader)
+                .flatMap(p -> Optional.ofNullable(p.getDocumentIdentification()))
+                .flatMap(p -> Optional.ofNullable(p.getType()))
+                .orElse(null);
+    }
 }

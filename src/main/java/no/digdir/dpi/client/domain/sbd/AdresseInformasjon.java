@@ -13,6 +13,4 @@ public class AdresseInformasjon {
     private String adresselinje4;
     private String postnummer;
     private String poststed;
-    private String land;
-    private String landkode;
 }

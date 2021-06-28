@@ -27,7 +27,6 @@ public class ShipmentFactory {
         return new Shipment()
                 .setStandardBusinessDocument(getStandardBusinessDocument(input))
                 .setParcel(getParcel(input))
-                .setMailbox(input.getMailbox())
                 .setReceiverBusinessCertificate(getReceiverCertificate(input))
                 .setLanguage("NO");
     }

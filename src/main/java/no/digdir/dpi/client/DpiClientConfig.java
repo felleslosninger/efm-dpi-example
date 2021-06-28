@@ -5,7 +5,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import net.jimblackler.jsonschemafriend.GenerationException;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.Validator;
@@ -13,8 +12,8 @@ import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
+import no.digdir.dpi.client.domain.sbd.MessageType;
 import no.digdir.dpi.client.internal.*;
-import no.digipost.api.xml.Schemas;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -33,6 +32,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URI;
 import java.security.Security;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableConfigurationProperties
@@ -117,9 +120,19 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator() throws GenerationException {
+    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator() {
+        return new JsonDigitalPostSchemaValidator(new Validator(), getSchemaMap());
+    }
+
+    private Map<String, Schema> getSchemaMap() {
         SchemaStore schemaStore = new SchemaStore();
-        Schema schema = schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/digitalpost.schema.json"));
-        return new JsonDigitalPostSchemaValidator(new Validator(), schema);
+        return Collections.unmodifiableMap(
+                Arrays.stream(MessageType.values())
+                        .collect(Collectors.toMap(MessageType::getType, p -> loadSchema(schemaStore, p.getSchemaUri()))));
+    }
+
+    @SneakyThrows
+    private Schema loadSchema(SchemaStore schemaStore, URI schemaUri) {
+        return schemaStore.loadSchema(schemaUri);
     }
 }

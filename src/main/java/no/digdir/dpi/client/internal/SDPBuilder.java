@@ -3,6 +3,8 @@ package no.digdir.dpi.client.internal;
 import no.difi.begrep.sdp.schema_v10.*;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.messagetypes.Digital;
+import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
 import no.digdir.dpi.client.domain.sbd.*;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +71,7 @@ public class SDPBuilder {
     }
 
     private SDPPerson getPerson(Shipment shipment) {
-        Message<? extends Message<?>> message = shipment.getStandardBusinessDocument().getMessage();
+        BusinessMessage<? extends BusinessMessage<?>> message = shipment.getStandardBusinessDocument().getMessage();
 
         if (message instanceof Digital) {
             Digital digital = (Digital) message;

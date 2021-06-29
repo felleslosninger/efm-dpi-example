@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
 import no.digdir.dpi.client.domain.sbd.header.StandardBusinessDocumentHeader;
 
 import java.util.Optional;
@@ -19,7 +20,7 @@ public class StandardBusinessDocument {
 
     @JsonDeserialize(using = MessageDeserializer.class)
     @JsonAlias({"digital", "utskrift"})
-    private Message<? extends Message<?>> message;
+    private BusinessMessage<? extends BusinessMessage<?>> message;
 
     @JsonIgnore
     public String getType() {

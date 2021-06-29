@@ -3,6 +3,7 @@ package no.digdir.dpi.client.domain.sbd;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import no.digdir.dpi.client.domain.messagetypes.MessageType;
 import no.digdir.dpi.client.domain.sbd.header.DocumentIdentification;
 
 import java.io.IOException;

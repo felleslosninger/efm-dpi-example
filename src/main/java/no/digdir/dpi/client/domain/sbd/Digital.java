@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 public class Digital implements Message<Digital> {
 
     private Avsender avsender;
-    private DigitalMottaker mottaker;
+    private Personmottaker mottaker;
     private Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk;
     private String maskinportentoken;
 

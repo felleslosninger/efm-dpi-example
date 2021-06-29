@@ -73,7 +73,7 @@ public class SDPBuilder {
 
         if (message instanceof Digital) {
             Digital digital = (Digital) message;
-            DigitalMottaker mottaker = digital.getMottaker();
+            Personmottaker mottaker = digital.getMottaker();
 
             return SDPPerson.builder()
                     .withPersonidentifikator(getPersonidentifikator(mottaker))
@@ -84,7 +84,7 @@ public class SDPBuilder {
         return null;
     }
 
-    private String getPersonidentifikator(DigitalMottaker mottaker) {
+    private String getPersonidentifikator(Personmottaker mottaker) {
         return Optional.ofNullable(mottaker.getPersonidentifikator().getValue())
                 .map(p -> PersonidentifikatorValue.of(p).getIdentifier())
                 .orElse(null);

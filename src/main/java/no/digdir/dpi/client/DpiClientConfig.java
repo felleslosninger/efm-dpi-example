@@ -3,8 +3,12 @@ package no.digdir.dpi.client;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.Validator;
@@ -27,21 +31,29 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import java.net.URI;
 import java.security.Security;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Configuration
 @EnableConfigurationProperties
 @ComponentScan(basePackages = "no.digdir.dpi.client")
 @RequiredArgsConstructor
 public class DpiClientConfig {
+
+    private static final String LOG_MESSAGE = "Response {}: {}";
 
     static {
         Security.addProvider(new BouncyCastleProvider());
@@ -55,8 +67,10 @@ public class DpiClientConfig {
                                CreateParcelFingerprint createParcelFingerprint,
                                StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer,
                                CreateJWT createJWT,
-                               CreateMultipart createMultipart) {
-        return new DpiClient(
+                               CreateMultipart createMultipart,
+                               DpiClientErrorHandler dpiClientErrorHandler,
+                               InMemoryWithTempFileFallbackResourceFactory resourceFactory) {
+        return new DpiClientImpl(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
                 createParcelFingerprint,
@@ -65,7 +79,47 @@ public class DpiClientConfig {
                 createMultipart,
                 WebClient.builder()
                         .baseUrl(properties.getUri())
-                        .build());
+                        .filter(logRequest())
+                        .filter(logResponse())
+                        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()
+                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getTimeout().getConnect())
+                                .doOnConnected(c -> c.addHandlerLast(new ReadTimeoutHandler(properties.getTimeout().getRead()))
+                                        .addHandlerLast(new WriteTimeoutHandler(properties.getTimeout().getWrite())))
+                                .responseTimeout(Duration.ofMillis(properties.getTimeout().getRead()))))
+                        .build(),
+                dpiClientErrorHandler,
+                resourceFactory);
+    }
+
+    private static ExchangeFilterFunction logRequest() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            log.debug("Request {}: {} {}", clientRequest.logPrefix(), clientRequest.method(), clientRequest.url());
+            return Mono.just(clientRequest);
+        });
+    }
+
+    private static ExchangeFilterFunction logResponse() {
+        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
+            switch (clientResponse.statusCode().series()) {
+                case SUCCESSFUL:
+                    log.debug(LOG_MESSAGE, clientResponse.logPrefix(), clientResponse.statusCode());
+                    break;
+                case INFORMATIONAL:
+                case CLIENT_ERROR:
+                    log.info(LOG_MESSAGE, clientResponse.logPrefix(), clientResponse.statusCode());
+                    break;
+                default:
+                    log.warn(LOG_MESSAGE, clientResponse.logPrefix(), clientResponse.statusCode());
+                    break;
+            }
+
+            return Mono.just(clientResponse);
+        });
+    }
+
+    @Bean
+    public DpiClientErrorHandler dpiClientErrorHandler() {
+        return new DpiClientErrorHandlerImpl();
     }
 
     @Bean

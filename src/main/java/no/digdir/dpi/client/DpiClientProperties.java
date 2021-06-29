@@ -20,6 +20,10 @@ public class DpiClientProperties {
     @NotNull
     String uri;
 
+    @Valid
+    @NotNull
+    private Timeout timeout;
+
     int temporaryFileThreshold = 10 * 1000 * 1000;
     File temporaryFileDirectory;
     int initialBufferSize = 100000;
@@ -44,5 +48,13 @@ public class DpiClientProperties {
         private List<String> scopes;
         @NestedConfigurationProperty
         private KeystoreProperties keystore;
+    }
+
+    @Data
+    public static class Timeout {
+
+        private int connect;
+        private int read;
+        private int write;
     }
 }

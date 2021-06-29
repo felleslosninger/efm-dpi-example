@@ -7,9 +7,7 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
-import no.digdir.dpi.client.domain.KeyPair;
-import no.digdir.dpi.client.domain.Parcel;
-import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.*;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.DpiMapper;
 import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
@@ -25,6 +23,7 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpRequest;
+import org.mockserver.model.HttpResponse;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.RequestDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.test.StepVerifier;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -42,14 +43,20 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 import javax.mail.util.SharedByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.ConfigurationWhen.paths;
 import static net.javacrumbs.jsonunit.core.ConfigurationWhen.then;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -104,6 +111,12 @@ class DpiClientTest {
     @Value("classpath:/c2.cer")
     private Resource sertifikat;
 
+    @Value("classpath:/message_statuses.json")
+    private Resource messageStatusesResource;
+
+    @Value("classpath:/messages.json")
+    private Resource messagesResource;
+
     @AfterEach
     public void afterEach(MockServerClient client) {
         client.reset();
@@ -119,46 +132,126 @@ class DpiClientTest {
         testSend(client, utskriftSbd, utskriftReadyForSendSbd);
     }
 
-    @SneakyThrows
-    private void testSend(MockServerClient client, Resource in, Resource out) {
+    @Test
+    void testSendWhenResponseError(MockServerClient client) {
+        HttpResponse httpResponse = response()
+                .withBody("{}")
+                .withStatusCode(400);
+
+        assertThatThrownBy(() -> send(client, digitalSbd, httpResponse))
+                .isInstanceOf(DpiException.class)
+                .hasMessage("400 Bad Request from POST http://localhost:8900/dpi/send")
+                .hasCauseInstanceOf(WebClientResponseException.BadRequest.class);
+    }
+
+    @Test
+    void testGetMessageStatuses(MockServerClient client) {
+        UUID uuid = UUID.randomUUID();
 
         client.when(request()
-                .withMethod("POST")
-                .withPath("/token"))
+                .withMethod("GET")
+                .withPath(String.format("/dpi/statuses/%s", uuid)))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
+                        .withBody(ResourceUtils.toByteArray(messageStatusesResource))
                 );
 
-        HttpRequest requestDefinition = request()
-                .withMethod("POST")
-                .withPath("/dpi");
+        StepVerifier.create(dpiClient.getMessageStatuses(uuid))
+                .recordWith(ArrayList::new)
+                .thenConsumeWhile(x -> true)
+                .consumeRecordedWith(elements -> assertThat(elements)
+                        .containsExactly(
+                                new MessageStatus()
+                                        .setStatus(ReceiptStatus.MOTTATT)
+                                        .setTimestamp(OffsetDateTime.parse("2021-06-29T05:49:47Z")),
+                                new MessageStatus()
+                                        .setStatus(ReceiptStatus.LEVERT)
+                                        .setTimestamp(OffsetDateTime.parse("2021-06-29T07:12:40Z"))
+                        ))
+                .verifyComplete();
 
-        client.when(requestDefinition)
+        client.verify(request()
+                .withMethod("GET")
+                .withPath(String.format("/dpi/statuses/%s", uuid)));
+    }
+
+    @Test
+    void testGetMessages(MockServerClient client) {
+        client.when(request()
+                .withMethod("GET")
+                .withPath("/dpi/messages"))
                 .respond(response()
-                        .withStatusCode(200));
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody(ResourceUtils.toByteArray(messagesResource))
+                );
 
-        Shipment shipment = shipmentFactory.getShipment(DpiExampleInput.builder()
-                .standardBusinessDocument(in)
-                .mainDocument(hoveddokument)
-                .attachments(Collections.singletonList(vedlegg))
-                .mailbox("dummy")
-                .receiverCertificate(sertifikat)
-                .build()
-        );
+        StepVerifier.create(dpiClient.getMessages())
+                .recordWith(ArrayList::new)
+                .thenConsumeWhile(x -> true)
+                .consumeRecordedWith(elements -> assertThat(elements).containsExactly(new Message()
+                        .setForettningsmelding("{ \"key\": \"value\" }")
+                        .setDownloadurl(URI.create("http://localhost:8900/dpi/downloadmessage/a9bc8498-13b1-4cef-9cf9-4873a03b484d"))
+                ))
+                .verifyComplete();
 
-        dpiClient.send(shipment);
+        client.verify(request()
+                .withMethod("GET")
+                .withPath("/dpi/messages"));
+    }
+
+    @Test
+    void testGetCmsEncryptedAsice(MockServerClient client) {
+        UUID uuid = UUID.randomUUID();
+        String path = String.format("/dpi/downloadmessage/%s", uuid);
+        byte[] bytes = new byte[1024 * 100];
+        ThreadLocalRandom.current().nextBytes(bytes);
+
+        client.when(request()
+                .withMethod("GET")
+                .withPath(path))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody(bytes)
+                );
+
+        CmsEncryptedAsice cmsEncryptedAsice = dpiClient.getCmsEncryptedAsice(URI.create("http://localhost:8900" + path));
+
+        assertThat(cmsEncryptedAsice.getResource().contentLength()).isEqualTo(1024 * 100);
+        assertThat(ResourceUtils.toByteArray(cmsEncryptedAsice.getResource())).isEqualTo(bytes);
+
+        client.verify(request()
+                .withMethod("GET")
+                .withPath(path));
+    }
+
+    @Test
+    void testMarkAsRead(MockServerClient client) {
+        UUID uuid = UUID.randomUUID();
+        String path = String.format("/dpi/setmessageread/%s", uuid);
+
+        client.when(request()
+                .withMethod("POST")
+                .withPath(path))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody(ResourceUtils.toByteArray(messagesResource))
+                );
+
+        dpiClient.markAsRead(uuid);
 
         client.verify(request()
                 .withMethod("POST")
-                .withPath("/token"));
+                .withPath(path));
+    }
 
-        client.verify(requestDefinition);
-
-        HttpRequest httpRequest = getRecordedRequest(client, requestDefinition);
-        MimeMultipart mimeMultipart = getMimeMultipart(httpRequest);
-
+    @SneakyThrows
+    private void testSend(MockServerClient client, Resource in, Resource out) {
+        MimeMultipart mimeMultipart = send(client, in, response()
+                .withStatusCode(200));
         assertThat(mimeMultipart.getCount()).isEqualTo(2);
         StandardBusinessDocument standardBusinessDocument = assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0), out);
         assertThatParcelIsCorrect(standardBusinessDocument, mimeMultipart.getBodyPart(1));
@@ -185,6 +278,44 @@ class DpiClientTest {
                 .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
         return standardBusinessDocument;
+    }
+
+    private MimeMultipart send(MockServerClient client, Resource in, HttpResponse httpResponse) throws MessagingException {
+        client.when(request()
+                .withMethod("POST")
+                .withPath("/token"))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
+                );
+
+        HttpRequest requestDefinition = request()
+                .withMethod("POST")
+                .withPath("/dpi/send");
+
+        client.when(requestDefinition)
+                .respond(httpResponse);
+
+        Shipment shipment = shipmentFactory.getShipment(DpiExampleInput.builder()
+                .standardBusinessDocument(in)
+                .mainDocument(hoveddokument)
+                .attachments(Collections.singletonList(vedlegg))
+                .mailbox("dummy")
+                .receiverCertificate(sertifikat)
+                .build()
+        );
+
+        dpiClient.send(shipment);
+
+        client.verify(request()
+                .withMethod("POST")
+                .withPath("/token"));
+
+        client.verify(requestDefinition);
+
+        HttpRequest httpRequest = getRecordedRequest(client, requestDefinition);
+        return getMimeMultipart(httpRequest);
     }
 
     @SneakyThrows

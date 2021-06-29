@@ -12,14 +12,13 @@ import java.util.stream.Collectors;
 public enum MessageType {
 
     DIGITAL("digital", Digital.class, URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_digital_1_0.schema.json")),
-    UTSKRIFT("utskrift", Utskrift.class, URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_utskrift_1_0.schema.json"));
-
+    UTSKRIFT("utskrift", Utskrift.class, URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_utskrift_1_0.schema.json")),
+    FEIL("feil", Feil.class, URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_feil_1_0.schema.json"));
 //            schemaMap.put("leveringskvittering", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_leveringskvittering_1_0.schema.json")));
 //        schemaMap.put("aapningskvittering", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_aapningskvittering_1_0.schema.json")));
 //        schemaMap.put("varslingfeiletkvittering", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_varslingfeiletkvittering_1_0.schema.json")));
 //        schemaMap.put("mottakskvittering", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_mottakskvittering_1_0.schema.json")));
 //        schemaMap.put("returpostkvittering", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_returpostkvittering_1_0.schema.json")));
-//        schemaMap.put("feil", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_feil_1_0.schema.json")));
 //        schemaMap.put("flyttet", schemaStore.loadSchema(URI.create("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_flyttet_1_0.schema.json")));
 
     private final String type;

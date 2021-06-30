@@ -82,9 +82,5 @@ public class ParcelParser {
         public Exception(String message) {
             super(message);
         }
-
-        public Exception(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 }

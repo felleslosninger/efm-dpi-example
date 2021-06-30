@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import no.digdir.dpi.client.domain.StandardBusinessDocumentWrapper;
 import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import no.digdir.dpi.client.domain.sbd.StandardBusinessDocumentDeserializer;
+import no.digdir.dpi.client.domain.sbd.StandardBusinessDocumentSerializer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,8 @@ public class DpiMapper {
     public DpiMapper() {
         this.objectMapper = Jackson2ObjectMapperBuilder.json()
                 .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .serializers(new StandardBusinessDocumentSerializer())
+                .deserializers(new StandardBusinessDocumentDeserializer())
                 .build();
     }
 

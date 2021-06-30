@@ -7,13 +7,17 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 
 public class StandardBusinessDocumentSerializer extends JsonSerializer<StandardBusinessDocument> {
+
+    @Override
+    public Class<StandardBusinessDocument> handledType() {
+        return StandardBusinessDocument.class;
+    }
+
     @Override
     public void serialize(StandardBusinessDocument value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
-        gen.writeFieldName("standardBusinessDocumentHeader");
-        gen.writeObject(value.getStandardBusinessDocumentHeader());
-        gen.writeFieldName(value.getMessage().getMessageType().getType());
-        gen.writeObject(value.getMessage());
+        gen.writeObjectField("standardBusinessDocumentHeader", value.getStandardBusinessDocumentHeader());
+        gen.writeObjectField(value.getBusinessMessage().getMessageType().getType(), value.getBusinessMessage());
         gen.writeEndObject();
     }
 }

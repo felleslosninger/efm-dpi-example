@@ -25,7 +25,7 @@ public class SDPBuilder {
     }
 
     private SDPAvsender getAvsender(Shipment shipment) {
-        return getAvsender(shipment.getStandardBusinessDocument().getMessage().getAvsender());
+        return getAvsender(shipment.getStandardBusinessDocument().getBusinessMessage().getAvsender());
     }
 
     private SDPDokument getHoveddokument(Shipment shipment) {
@@ -71,7 +71,7 @@ public class SDPBuilder {
     }
 
     private SDPPerson getPerson(Shipment shipment) {
-        BusinessMessage<? extends BusinessMessage<?>> message = shipment.getStandardBusinessDocument().getMessage();
+        BusinessMessage<? extends BusinessMessage<?>> message = shipment.getStandardBusinessDocument().getBusinessMessage();
 
         if (message instanceof Digital) {
             Digital digital = (Digital) message;

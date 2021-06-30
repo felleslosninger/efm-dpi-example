@@ -274,7 +274,7 @@ class DpiClientTest {
         jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), standardBusinessDocument.getType());
 
         assertThatJson(payload.toString())
-                .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", standardBusinessDocument.getMessage().getMessageType().getType())), then(Option.IGNORING_VALUES))
+                .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", standardBusinessDocument.getBusinessMessage().getMessageType().getType())), then(Option.IGNORING_VALUES))
                 .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
         return standardBusinessDocument;

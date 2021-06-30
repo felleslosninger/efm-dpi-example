@@ -20,7 +20,7 @@ public class StandBusinessDocumentJsonFinalizer {
     public Map<String, Object> getFinalizedStandardBusinessDocumentAsJson(StandardBusinessDocument standardBusinessDocument,
                                                                           Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk,
                                                                           String maskinportenToken) {
-        BusinessMessage<? extends BusinessMessage<?>> message = standardBusinessDocument.getMessage();
+        BusinessMessage<? extends BusinessMessage<?>> message = standardBusinessDocument.getBusinessMessage();
 
         if (message instanceof DokumentpakkefingeravtrykkHolder) {
             ((DokumentpakkefingeravtrykkHolder) message).setDokumentpakkefingeravtrykk(dokumentpakkefingeravtrykk);

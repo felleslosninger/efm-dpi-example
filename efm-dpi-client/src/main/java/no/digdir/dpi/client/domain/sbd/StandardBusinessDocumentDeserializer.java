@@ -21,9 +21,11 @@ public class StandardBusinessDocumentDeserializer extends JsonDeserializer<Stand
     public StandardBusinessDocument deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         StandardBusinessDocumentHeader header = readObject(p, "standardBusinessDocumentHeader", StandardBusinessDocumentHeader.class);
         MessageType type = MessageType.fromType(header.getType());
-        return new StandardBusinessDocument()
+        StandardBusinessDocument standardBusinessDocument = new StandardBusinessDocument()
                 .setStandardBusinessDocumentHeader(header)
                 .setBusinessMessage(readObject(p, type.getType(), type.getClazz()));
+        assertToken(p, JsonToken.END_OBJECT);
+        return standardBusinessDocument;
     }
 
     private <T> T readObject(JsonParser p, String fieldName, Class<T> valueType) throws IOException {

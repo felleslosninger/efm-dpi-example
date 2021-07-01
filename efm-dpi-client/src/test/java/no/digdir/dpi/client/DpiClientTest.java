@@ -5,6 +5,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.util.X509CertChainUtils;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
 import no.digdir.dpi.client.domain.*;
@@ -41,6 +42,7 @@ import javax.mail.util.SharedByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -258,7 +260,7 @@ class DpiClientTest {
 
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         JWSObject jwsObject = JWSObject.parse(IOUtils.toString(content, StandardCharsets.UTF_8));
-        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) keyPair.getBusinessCertificate().getPublicKey());
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) getSigningCertificate(jwsObject).getPublicKey());
         assertThat(jwsObject.verify(verifier)).isTrue();
 
         Payload payload = jwsObject.getPayload();
@@ -272,6 +274,14 @@ class DpiClientTest {
                 .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
         return standardBusinessDocument;
+    }
+
+    @SneakyThrows
+    private X509Certificate getSigningCertificate(JWSObject jwsObject) {
+        return X509CertChainUtils.parse(jwsObject.getHeader().getX509CertChain())
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Can not find signing certificate!"));
     }
 
     private MimeMultipart send(MockServerClient client, Resource in, HttpResponse httpResponse) throws MessagingException {

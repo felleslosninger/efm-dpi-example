@@ -3,6 +3,7 @@ package no.digdir.dpi.client;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.util.Base64;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -137,9 +138,12 @@ public class DpiClientConfig {
     }
 
     @Bean
+    @SneakyThrows
     public CreateJWT createJWT(KeyPair keyPair) {
         return new CreateJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256).build(),
+                new JWSHeader.Builder(JWSAlgorithm.RS256)
+                        .x509CertChain(Collections.singletonList(Base64.encode(keyPair.getBusinessCertificate().getX509Certificate().getEncoded())))
+                        .build(),
                 new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
     }
 

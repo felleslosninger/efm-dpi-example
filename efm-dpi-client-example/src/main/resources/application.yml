@@ -12,7 +12,8 @@ dpi:
             audience: 'https://ver2.maskinporten.no/'
             clientId: 'dpi_test'
             scopes:
-                - dummy
+                - dpi:read
+                - dpi:write
             keystore:
                 alias: ${dpi.client.keystore.alias}
                 lockProvider: ${dpi.client.keystore.lockProvider}

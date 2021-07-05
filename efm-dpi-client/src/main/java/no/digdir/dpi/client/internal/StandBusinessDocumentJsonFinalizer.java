@@ -1,11 +1,11 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
-import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
 import no.digdir.dpi.client.domain.messagetypes.DokumentpakkefingeravtrykkHolder;
 import no.digdir.dpi.client.domain.messagetypes.MaskinportentokenHolder;
 import no.digdir.dpi.client.domain.sbd.Dokumentpakkefingeravtrykk;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ public class StandBusinessDocumentJsonFinalizer {
     public Map<String, Object> getFinalizedStandardBusinessDocumentAsJson(StandardBusinessDocument standardBusinessDocument,
                                                                           Dokumentpakkefingeravtrykk dokumentpakkefingeravtrykk,
                                                                           String maskinportenToken) {
-        BusinessMessage<? extends BusinessMessage<?>> message = standardBusinessDocument.getBusinessMessage();
+        Object message = standardBusinessDocument.getAny();
 
         if (message instanceof DokumentpakkefingeravtrykkHolder) {
             ((DokumentpakkefingeravtrykkHolder) message).setDokumentpakkefingeravtrykk(dokumentpakkefingeravtrykk);
@@ -31,7 +31,7 @@ public class StandBusinessDocumentJsonFinalizer {
         }
 
         Map<String, Object> json = dpiMapper.convertToJsonObject(standardBusinessDocument);
-        jsonDigitalPostSchemaValidator.validate(json, standardBusinessDocument.getType());
+        jsonDigitalPostSchemaValidator.validate(json, StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null));
         return json;
     }
 }

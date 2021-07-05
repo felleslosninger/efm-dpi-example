@@ -6,7 +6,7 @@ import no.digdir.dpi.client.domain.sbd.Virksomhetmottaker;
 
 import java.time.OffsetDateTime;
 
-abstract class AbstractKvittering<T extends BusinessMessage<T>> implements Kvittering<T> {
+abstract class AbstractKvittering<T extends Kvittering<T>> implements Kvittering<T> {
 
     private Avsender avsender;
     private Virksomhetmottaker mottaker;

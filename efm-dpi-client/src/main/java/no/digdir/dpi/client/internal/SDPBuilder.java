@@ -1,11 +1,14 @@
 package no.digdir.dpi.client.internal;
 
 import no.difi.begrep.sdp.schema_v10.*;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.messagetypes.Digital;
 import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
-import no.digdir.dpi.client.domain.sbd.*;
+import no.digdir.dpi.client.domain.messagetypes.PersonmottakerHolder;
+import no.digdir.dpi.client.domain.sbd.Avsender;
+import no.digdir.dpi.client.domain.sbd.Identifikator;
+import no.digdir.dpi.client.domain.sbd.Personmottaker;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,7 +28,10 @@ public class SDPBuilder {
     }
 
     private SDPAvsender getAvsender(Shipment shipment) {
-        return getAvsender(shipment.getStandardBusinessDocument().getBusinessMessage().getAvsender());
+        StandardBusinessDocument sbd = shipment.getStandardBusinessDocument();
+        return sbd.getBusinessMessage(BusinessMessage.class)
+                .map(message -> getAvsender(message.getAvsender()))
+                .orElse(null);
     }
 
     private SDPDokument getHoveddokument(Shipment shipment) {
@@ -71,19 +77,15 @@ public class SDPBuilder {
     }
 
     private SDPPerson getPerson(Shipment shipment) {
-        BusinessMessage<? extends BusinessMessage<?>> message = shipment.getStandardBusinessDocument().getBusinessMessage();
-
-        if (message instanceof Digital) {
-            Digital digital = (Digital) message;
-            Personmottaker mottaker = digital.getMottaker();
-
-            return SDPPerson.builder()
-                    .withPersonidentifikator(getPersonidentifikator(mottaker))
-                    .withPostkasseadresse(mottaker.getPostkasseadresse())
-                    .build();
-        }
-
-        return null;
+        return shipment.getStandardBusinessDocument().getBusinessMessage(PersonmottakerHolder.class)
+                .map(PersonmottakerHolder::getMottaker)
+                .map(mottaker ->
+                        SDPPerson.builder()
+                                .withPersonidentifikator(getPersonidentifikator(mottaker))
+                                .withPostkasseadresse(mottaker.getPostkasseadresse())
+                                .build()
+                )
+                .orElse(null);
     }
 
     private String getPersonidentifikator(Personmottaker mottaker) {

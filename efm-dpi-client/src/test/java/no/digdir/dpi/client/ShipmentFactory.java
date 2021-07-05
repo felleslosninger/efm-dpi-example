@@ -2,11 +2,11 @@ package no.digdir.dpi.client;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.BusinessCertificate;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.DpiMapper;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;

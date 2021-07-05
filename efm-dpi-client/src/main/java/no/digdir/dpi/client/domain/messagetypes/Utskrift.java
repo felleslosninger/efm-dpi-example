@@ -19,11 +19,6 @@ public class Utskrift implements BusinessMessage<Utskrift>, Dokumentpakkefingera
     private Retur retur;
     private Posttype posttype;
 
-    @Override
-    public MessageType getMessageType() {
-        return MessageType.UTSKRIFT;
-    }
-
     public enum Posttype {
         A,
         B

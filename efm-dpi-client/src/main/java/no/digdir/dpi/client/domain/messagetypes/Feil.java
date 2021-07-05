@@ -19,11 +19,6 @@ public class Feil implements BusinessMessage<Feil>, MaskinportentokenHolder {
     private Type feiltype;
     private String detaljer;
 
-    @Override
-    public MessageType getMessageType() {
-        return MessageType.FEIL;
-    }
-
     private enum Type {
         KLIENT, SERVER
     }

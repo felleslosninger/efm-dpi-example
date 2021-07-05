@@ -2,7 +2,7 @@ package no.digdir.dpi.client.domain;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 
 @Data
 @NoArgsConstructor

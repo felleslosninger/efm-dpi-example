@@ -42,12 +42,13 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.Security;
-import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -85,11 +86,13 @@ public class DpiClientConfig {
                         .baseUrl(properties.getUri())
                         .filter(logRequest())
                         .filter(logResponse())
-                        .clientConnector(new ReactorClientHttpConnector(HttpClient.create()
+                        .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
+                                .create()
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getTimeout().getConnect())
-                                .doOnConnected(c -> c.addHandlerLast(new ReadTimeoutHandler(properties.getTimeout().getRead()))
-                                        .addHandlerLast(new WriteTimeoutHandler(properties.getTimeout().getWrite())))
-                                .responseTimeout(Duration.ofMillis(properties.getTimeout().getRead()))))
+                                .doOnConnected(connection -> {
+                                    connection.addHandlerLast(new ReadTimeoutHandler(properties.getTimeout().getRead(), TimeUnit.MILLISECONDS));
+                                    connection.addHandlerLast(new WriteTimeoutHandler(properties.getTimeout().getWrite(), TimeUnit.MILLISECONDS));
+                                }))))
                         .build(),
                 dpiClientErrorHandler,
                 resourceFactory);

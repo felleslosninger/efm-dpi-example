@@ -8,8 +8,9 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.X509CertChainUtils;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
 import no.digdir.dpi.client.domain.*;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.DpiMapper;
 import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
 import org.apache.commons.io.IOUtils;
@@ -26,7 +27,7 @@ import org.mockserver.model.MediaType;
 import org.mockserver.model.RequestDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +60,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 @ContextConfiguration(
-        initializers = ConfigDataApplicationContextInitializer.class,
+        initializers = ConfigFileApplicationContextInitializer.class,
         classes = {DpiClientTestConfig.class, DpiClientConfig.class})
 @ExtendWith({SpringExtension.class, MockServerExtension.class})
 @MockServerSettings(ports = 8900)
@@ -267,10 +268,11 @@ class DpiClientTest {
 
         StandardBusinessDocument standardBusinessDocument = dpiMapper.readStandardBusinessDocument(payload.toString());
 
-        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), standardBusinessDocument.getType());
+        String type = StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null);
+        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), type);
 
         assertThatJson(payload.toString())
-                .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", standardBusinessDocument.getBusinessMessage().getMessageType().getType())), then(Option.IGNORING_VALUES))
+                .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", type)), then(Option.IGNORING_VALUES))
                 .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
 
         return standardBusinessDocument;
@@ -330,7 +332,7 @@ class DpiClientTest {
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         InputStream asicInputStream = decryptCMSDocument.decrypt(content);
         Parcel parcel = parcelParser.parse(
-                standardBusinessDocument.getStandardBusinessDocumentHeader().getDocumentIdentification().getInstanceIdentifier().toString(),
+                standardBusinessDocument.getStandardBusinessDocumentHeader().getDocumentIdentification().getInstanceIdentifier(),
                 asicInputStream);
 
         assertThat(parcel.getMainDocument().getFilename()).isEqualTo("svada.pdf");

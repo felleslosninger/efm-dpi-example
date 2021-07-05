@@ -27,9 +27,4 @@ public class Flyttet implements BusinessMessage<Flyttet>, Dokumentpakkefingeravt
     private Boolean aapningskvittering;
     private Ikkesensitivtittel ikkesensitivtittel;
     private Varsler varsler;
-
-    @Override
-    public MessageType getMessageType() {
-        return MessageType.FLYTTET;
-    }
 }

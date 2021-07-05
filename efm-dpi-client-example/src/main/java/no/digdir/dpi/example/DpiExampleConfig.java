@@ -18,8 +18,7 @@ import java.time.ZoneId;
         DpiClientConfig.class,
         DpiClientProperties.class,
         ShipmentFactory.class,
-        FileExtensionMapper.class,
-        TaskExecutorConfig.class
+        FileExtensionMapper.class
 })
 public class DpiExampleConfig {
 

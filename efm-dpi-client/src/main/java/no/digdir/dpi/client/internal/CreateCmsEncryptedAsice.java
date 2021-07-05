@@ -4,11 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.internal.pipes.Plumber;
-import no.digdir.dpi.client.internal.pipes.PromiseMaker;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 @Slf4j
@@ -16,27 +15,34 @@ import java.io.OutputStream;
 @RequiredArgsConstructor
 public class CreateCmsEncryptedAsice {
 
-    private final PromiseMaker promiseMaker;
     private final InMemoryWithTempFileFallbackResourceFactory resourceFactory;
-    private final Plumber plumber;
     private final CreateASiCE createASiCE;
     private final CreateCMSDocument createCMS;
 
     public CmsEncryptedAsice createCmsEncryptedAsice(Shipment shipment) {
-        return promiseMaker.promise(reject -> {
-            InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
+        return new CmsEncryptedAsice(createCMS(shipment, createAsice(shipment)));
+    }
 
-            plumber.pipe("Creating ASiC-E", inlet -> createASiCE.createAsice(shipment, inlet), reject)
-                    .andFinally(outlet -> {
-                        try (OutputStream outputStream = cms.getOutputStream()) {
-                            createCMS.createCMS(outlet, outputStream, shipment.getReceiverBusinessCertificate());
-                        } catch (IOException e) {
-                            throw new CreateCmsEncryptedAsice.Exception("CMS encryption failed!", e);
-                        }
-                    });
+    private InMemoryWithTempFileFallbackResource createCMS(Shipment shipment, InMemoryWithTempFileFallbackResource asic) {
+        InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
 
-            return new CmsEncryptedAsice(cms);
-        }).await();
+        try (InputStream inputStream = asic.getInputStream(); OutputStream outputStream = cms.getOutputStream()) {
+            createCMS.createCMS(inputStream, outputStream, shipment.getReceiverBusinessCertificate());
+        } catch (IOException e) {
+            throw new Exception("CMS encryption failed!", e);
+        }
+        return cms;
+    }
+
+    private InMemoryWithTempFileFallbackResource createAsice(Shipment shipment) {
+        InMemoryWithTempFileFallbackResource asic = resourceFactory.getResource("dpi-", ".asic");
+
+        try (OutputStream outputStream = asic.getOutputStream()) {
+            createASiCE.createAsice(shipment, outputStream);
+        } catch (IOException e) {
+            throw new Exception("Creating ASiC-E failed!", e);
+        }
+        return asic;
     }
 
     private static class Exception extends RuntimeException {

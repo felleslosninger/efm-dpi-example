@@ -21,7 +21,6 @@ public class CreateManifest {
 
     public Manifest createManifest(Shipment shipment) {
         SDPManifest sdpManifest = sdpBuilder.createManifest(shipment);
-
         ByteArrayOutputStream manifestStream = new ByteArrayOutputStream();
         try {
             marshaller.marshal(sdpManifest, new StreamResult(manifestStream));

@@ -12,6 +12,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
+import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.Validator;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.difi.move.common.cert.KeystoreProvider;
@@ -186,10 +187,14 @@ public class DpiClientConfig {
     }
 
     private Map<String, Schema> getSchemaMap() {
-        SchemaStore schemaStore = new SchemaStore();
+        SchemaStore schemaStore = new SchemaStore(getUrlRewriter());
         return Collections.unmodifiableMap(
                 Arrays.stream(MessageType.values())
                         .collect(Collectors.toMap(MessageType::getType, p -> loadSchema(schemaStore, p.getSchemaUri()))));
+    }
+
+    private UrlRewriter getUrlRewriter() {
+        return uri -> URI.create(String.format("classpath:/schema/%s%s", uri.getHost(), uri.getPath()));
     }
 
     @SneakyThrows

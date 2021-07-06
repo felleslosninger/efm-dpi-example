@@ -156,10 +156,10 @@ class DpiClientTest {
                 .consumeRecordedWith(elements -> assertThat(elements)
                         .containsExactly(
                                 new MessageStatus()
-                                        .setStatus(ReceiptStatus.MOTTATT)
+                                        .setStatus(ReceiptStatus.SENDT)
                                         .setTimestamp(OffsetDateTime.parse("2021-06-29T05:49:47Z")),
                                 new MessageStatus()
-                                        .setStatus(ReceiptStatus.LEVERT)
+                                        .setStatus(ReceiptStatus.MOTTATT)
                                         .setTimestamp(OffsetDateTime.parse("2021-06-29T07:12:40Z"))
                         ))
                 .verifyComplete();

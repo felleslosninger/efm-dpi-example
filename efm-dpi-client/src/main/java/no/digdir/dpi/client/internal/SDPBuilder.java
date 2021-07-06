@@ -3,9 +3,11 @@ package no.digdir.dpi.client.internal;
 import no.difi.begrep.sdp.schema_v10.*;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.messagetypes.Digital;
 import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
-import no.digdir.dpi.client.domain.sbd.*;
+import no.digdir.dpi.client.domain.messagetypes.Digital;
+import no.digdir.dpi.client.domain.sbd.Avsender;
+import no.digdir.dpi.client.domain.sbd.Identifikator;
+import no.digdir.dpi.client.domain.sbd.Personmottaker;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -78,18 +80,11 @@ public class SDPBuilder {
             Personmottaker mottaker = digital.getMottaker();
 
             return SDPPerson.builder()
-                    .withPersonidentifikator(getPersonidentifikator(mottaker))
                     .withPostkasseadresse(mottaker.getPostkasseadresse())
                     .build();
         }
 
         return null;
-    }
-
-    private String getPersonidentifikator(Personmottaker mottaker) {
-        return Optional.ofNullable(mottaker.getPersonidentifikator().getValue())
-                .map(p -> PersonidentifikatorValue.of(p).getIdentifier())
-                .orElse(null);
     }
 
     private SDPAvsender getAvsender(Avsender avsender) {

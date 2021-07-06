@@ -81,16 +81,9 @@ public class SDPBuilder {
                 .map(PersonmottakerHolder::getMottaker)
                 .map(mottaker ->
                         SDPPerson.builder()
-                                .withPersonidentifikator(getPersonidentifikator(mottaker))
                                 .withPostkasseadresse(mottaker.getPostkasseadresse())
                                 .build()
                 )
-                .orElse(null);
-    }
-
-    private String getPersonidentifikator(Personmottaker mottaker) {
-        return Optional.ofNullable(mottaker.getPersonidentifikator().getValue())
-                .map(p -> PersonidentifikatorValue.of(p).getIdentifier())
                 .orElse(null);
     }
 

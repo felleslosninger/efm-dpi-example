@@ -73,9 +73,6 @@ class DpiClientTest {
     private ShipmentFactory shipmentFactory;
 
     @Autowired
-    private KeyPair keyPair;
-
-    @Autowired
     private DecryptCMSDocument decryptCMSDocument;
 
     @Autowired

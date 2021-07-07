@@ -1,6 +1,7 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.SneakyThrows;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -47,16 +48,14 @@ public class DomUtils {
         return IntStream.range(0, nodeList.getLength()).mapToObj(nodeList::item);
     }
 
-    public byte[] serializeToXml(Node root) {
-        byte[] serializedXml;
+    public ByteArrayResource serializeToXml(Node root) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Transformer transformer = transformerFactory.newTransformer();
             transformer.transform(new DOMSource(root), new StreamResult(outputStream));
-            serializedXml = outputStream.toByteArray();
+            return new ByteArrayResource(outputStream.toByteArray());
         } catch (TransformerException | IOException e) {
             throw new Exception("Unable to serialize XML", e);
         }
-        return serializedXml;
     }
 
     private static class Exception extends RuntimeException {

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.internal.domain.Manifest;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class CreateManifest {
         ByteArrayOutputStream manifestStream = new ByteArrayOutputStream();
         try {
             marshaller.marshal(sdpManifest, new StreamResult(manifestStream));
-            return new Manifest(manifestStream.toByteArray());
+            return new Manifest(new ByteArrayResource(manifestStream.toByteArray()));
         } catch (MarshallingFailureException e) {
             if (e.getMostSpecificCause() instanceof SAXParseException) {
                 throw new Exception("Kunne ikke validere generert Manifest XML. Sjekk at alle påkrevde input er satt og ikke er null",

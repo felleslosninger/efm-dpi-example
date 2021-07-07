@@ -3,13 +3,12 @@ package no.digdir.dpi.client.internal.domain;
 
 import lombok.Value;
 import no.digdir.dpi.client.domain.AsicEAttachable;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 @Value
 public class Manifest implements AsicEAttachable {
 
-    byte[] bytes;
+    Resource resource;
 
     @Override
     public String getFilename() {
@@ -18,7 +17,7 @@ public class Manifest implements AsicEAttachable {
 
     @Override
     public Resource getResource() {
-        return new ByteArrayResource(bytes);
+        return resource;
     }
 
     @Override

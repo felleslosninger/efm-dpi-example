@@ -4,5 +4,5 @@ public interface MaskinportentokenHolder {
 
     String getMaskinportentoken();
 
-    <T extends BusinessMessage<T>> BusinessMessage<T> setMaskinportentoken(String maskinportenToken);
+    BusinessMessage setMaskinportentoken(String maskinportentoken);
 }

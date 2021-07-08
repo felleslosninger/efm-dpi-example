@@ -9,7 +9,7 @@ import no.digdir.dpi.client.domain.sbd.Virksomhetmottaker;
 import java.time.OffsetDateTime;
 
 @Data
-public class Feil implements BusinessMessage<Feil>, MaskinportentokenHolder {
+public class Feil implements BusinessMessage, MaskinportentokenHolder {
 
     private Avsender avsender;
     private Virksomhetmottaker mottaker;

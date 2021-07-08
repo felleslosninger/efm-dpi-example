@@ -1,6 +1,6 @@
 package no.digdir.dpi.client.domain.messagetypes;
 
-public class Aapningskvittering extends AbstractKvittering<Aapningskvittering> {
+public class Aapningskvittering extends AbstractKvittering {
 
     @Override
     public MessageType getMessageType() {

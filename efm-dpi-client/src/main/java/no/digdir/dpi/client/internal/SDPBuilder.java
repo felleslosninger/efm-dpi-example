@@ -73,7 +73,7 @@ public class SDPBuilder {
     }
 
     private SDPPerson getPerson(Shipment shipment) {
-        BusinessMessage<? extends BusinessMessage<?>> message = shipment.getStandardBusinessDocument().getBusinessMessage();
+        BusinessMessage message = shipment.getStandardBusinessDocument().getBusinessMessage();
 
         if (message instanceof Digital) {
             Digital digital = (Digital) message;

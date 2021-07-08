@@ -13,7 +13,7 @@ import java.util.Optional;
 public class StandardBusinessDocument {
 
     private StandardBusinessDocumentHeader standardBusinessDocumentHeader;
-    private BusinessMessage<? extends BusinessMessage<?>> businessMessage;
+    private BusinessMessage businessMessage;
 
     @JsonIgnore
     public String getType() {

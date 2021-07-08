@@ -20,10 +20,10 @@ public enum MessageType {
     FLYTTET("flyttet", Flyttet.class);
 
     private final String type;
-    private final Class<? extends BusinessMessage<?>> clazz;
+    private final Class<? extends BusinessMessage> clazz;
     private final URI schemaUri;
 
-    MessageType(String type, Class<? extends BusinessMessage<?>> clazz) {
+    MessageType(String type, Class<? extends BusinessMessage> clazz) {
         this.type = type;
         this.clazz = clazz;
         this.schemaUri = URI.create(String.format("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_%s_1_0.schema.json", type));

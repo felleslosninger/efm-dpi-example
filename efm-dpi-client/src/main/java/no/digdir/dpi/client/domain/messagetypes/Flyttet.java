@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Data
-public class Flyttet implements BusinessMessage<Flyttet>, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
+public class Flyttet implements BusinessMessage, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
 
     private Avsender avsender;
     private Personmottaker mottaker;

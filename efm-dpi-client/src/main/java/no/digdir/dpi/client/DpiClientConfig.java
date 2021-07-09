@@ -74,7 +74,8 @@ public class DpiClientConfig {
                                CreateJWT createJWT,
                                CreateMultipart createMultipart,
                                DpiClientErrorHandler dpiClientErrorHandler,
-                               InMemoryWithTempFileFallbackResourceFactory resourceFactory) {
+                               InMemoryWithTempFileFallbackResourceFactory resourceFactory,
+                               MessageUnwrapper messageUnwrapper) {
         return new DpiClientImpl(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
@@ -93,7 +94,8 @@ public class DpiClientConfig {
                                 .responseTimeout(Duration.ofMillis(properties.getTimeout().getRead()))))
                         .build(),
                 dpiClientErrorHandler,
-                resourceFactory);
+                resourceFactory,
+                messageUnwrapper);
     }
 
     private static ExchangeFilterFunction logRequest() {

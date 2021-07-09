@@ -14,6 +14,6 @@ public class DpiExample {
     private final ShipmentFactory shipmentFactory;
 
     public void run(DpiExampleInput input) {
-        dpiClient.send(shipmentFactory.getShipment(input));
+        dpiClient.sendMessage(shipmentFactory.getShipment(input));
     }
 }

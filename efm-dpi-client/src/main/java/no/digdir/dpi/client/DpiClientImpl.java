@@ -3,10 +3,7 @@ package no.digdir.dpi.client;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import no.digdir.dpi.client.domain.CmsEncryptedAsice;
-import no.digdir.dpi.client.domain.Message;
-import no.digdir.dpi.client.domain.MessageStatus;
-import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.*;
 import no.digdir.dpi.client.internal.*;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -35,10 +32,11 @@ public class DpiClientImpl implements DpiClient {
     private final WebClient webClient;
     private final DpiClientErrorHandler dpiClientErrorHandler;
     private final InMemoryWithTempFileFallbackResourceFactory resourceFactory;
+    private final MessageUnwrapper messageUnwrapper;
 
     @Override
     @SneakyThrows
-    public void send(Shipment shipment) {
+    public void sendMessage(Shipment shipment) {
         try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
             String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
 
@@ -76,13 +74,14 @@ public class DpiClientImpl implements DpiClient {
     }
 
     @Override
-    public Flux<Message> getMessages() {
+    public Flux<ReceivedMessage> getMessages() {
         return webClient.get()
                 .uri("/messages")
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
-                .bodyToFlux(Message.class);
+                .bodyToFlux(Message.class)
+                .map(messageUnwrapper::unwrap);
     }
 
     @Override

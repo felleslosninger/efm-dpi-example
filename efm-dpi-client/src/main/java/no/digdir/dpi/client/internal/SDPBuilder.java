@@ -8,7 +8,6 @@ import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
 import no.digdir.dpi.client.domain.messagetypes.PersonmottakerHolder;
 import no.digdir.dpi.client.domain.sbd.Avsender;
 import no.digdir.dpi.client.domain.sbd.Identifikator;
-import no.digdir.dpi.client.domain.sbd.Personmottaker;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

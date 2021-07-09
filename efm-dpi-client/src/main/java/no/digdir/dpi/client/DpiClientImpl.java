@@ -69,6 +69,7 @@ public class DpiClientImpl implements DpiClient {
     public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
         return webClient.get()
                 .uri("/statuses/{identifier}", identifier)
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(MessageStatus.class);
@@ -78,6 +79,7 @@ public class DpiClientImpl implements DpiClient {
     public Flux<Message> getMessages() {
         return webClient.get()
                 .uri("/messages")
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(Message.class);
@@ -88,6 +90,7 @@ public class DpiClientImpl implements DpiClient {
         InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
         Flux<DataBuffer> dataBuffer = webClient.get()
                 .uri(downloadurl)
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(DataBuffer.class);
@@ -109,6 +112,7 @@ public class DpiClientImpl implements DpiClient {
     public void markAsRead(UUID identifier) {
         webClient.post()
                 .uri("/setmessageread/{identifier}", identifier)
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .toBodilessEntity()

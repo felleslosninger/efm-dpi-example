@@ -9,9 +9,4 @@ public class MetadataDocument implements AsicEAttachable {
     String filename;
     Resource resource;
     String mimeType;
-
-    @Override
-    public Resource getResource() {
-        return resource;
-    }
 }

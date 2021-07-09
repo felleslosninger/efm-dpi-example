@@ -16,6 +16,7 @@ import no.digdir.dpi.client.internal.JsonDigitalPostSchemaValidator;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockserver.client.MockServerClient;
@@ -110,6 +111,18 @@ class DpiClientTest {
 
     @Value("classpath:/messages.json")
     private Resource messagesResource;
+
+    @BeforeEach
+    public void beforeEach(MockServerClient client) {
+        client.when(request()
+                .withMethod("POST")
+                .withPath("/token"))
+                .respond(response()
+                        .withStatusCode(200)
+                        .withContentType(MediaType.APPLICATION_JSON)
+                        .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
+                );
+    }
 
     @AfterEach
     public void afterEach(MockServerClient client) {
@@ -284,15 +297,6 @@ class DpiClientTest {
     }
 
     private MimeMultipart send(MockServerClient client, Resource in, HttpResponse httpResponse) throws MessagingException {
-        client.when(request()
-                .withMethod("POST")
-                .withPath("/token"))
-                .respond(response()
-                        .withStatusCode(200)
-                        .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
-                );
-
         HttpRequest requestDefinition = request()
                 .withMethod("POST")
                 .withPath("/dpi/send");

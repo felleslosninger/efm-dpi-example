@@ -7,12 +7,10 @@ import net.javacrumbs.jsonunit.core.Option;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
 import no.digdir.dpi.client.domain.*;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import no.digdir.dpi.client.internal.UnpackJWT;
 import no.digdir.dpi.client.internal.UnpackStandardBusinessDocument;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -277,6 +275,8 @@ class DpiClientTest {
         String jwt = IOUtils.toString(content, StandardCharsets.UTF_8);
         Payload payload = unpackJWT.getPayload(jwt);
         StandardBusinessDocument standardBusinessDocument = unpackStandardBusinessDocument.unpackStandardBusinessDocument(payload);
+
+        String type = StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null);
 
         assertThatJson(payload.toString())
                 .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", type)), then(Option.IGNORING_VALUES))

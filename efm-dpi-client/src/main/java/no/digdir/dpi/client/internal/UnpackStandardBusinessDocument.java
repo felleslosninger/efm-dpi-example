@@ -2,7 +2,8 @@ package no.digdir.dpi.client.internal;
 
 import com.nimbusds.jose.Payload;
 import lombok.RequiredArgsConstructor;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +15,8 @@ public class UnpackStandardBusinessDocument {
 
     public StandardBusinessDocument unpackStandardBusinessDocument(Payload payload) {
         StandardBusinessDocument standardBusinessDocument = dpiMapper.readStandardBusinessDocument(payload.toString());
-        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), standardBusinessDocument.getType());
+        String type = StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null);
+        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), type);
         return standardBusinessDocument;
     }
 }

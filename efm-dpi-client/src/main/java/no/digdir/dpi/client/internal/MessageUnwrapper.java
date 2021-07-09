@@ -2,9 +2,9 @@ package no.digdir.dpi.client.internal;
 
 import com.nimbusds.jose.Payload;
 import lombok.RequiredArgsConstructor;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.Message;
 import no.digdir.dpi.client.domain.ReceivedMessage;
-import no.digdir.dpi.client.domain.sbd.StandardBusinessDocument;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.domain.*;
 import no.digdir.dpi.client.internal.*;
+import no.digdir.dpi.client.internal.domain.CreateStandardBusinessDocumentJWT;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -25,9 +25,7 @@ public class DpiClientImpl implements DpiClient {
 
     private final CreateCmsEncryptedAsice createCmsEncryptedAsice;
     private final CreateMaskinportenToken createMaskinportenToken;
-    private final CreateParcelFingerprint createParcelFingerprint;
-    private final StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer;
-    private final CreateJWT createJWT;
+    private final CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT;
     private final CreateMultipart createMultipart;
     private final WebClient webClient;
     private final DpiClientErrorHandler dpiClientErrorHandler;
@@ -39,13 +37,7 @@ public class DpiClientImpl implements DpiClient {
     public void sendMessage(Shipment shipment) {
         try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
             String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
-
-            Map<String, Object> finalizedSBD = standBusinessDocumentJsonFinalizer.getFinalizedStandardBusinessDocumentAsJson(
-                    shipment.getStandardBusinessDocument(),
-                    createParcelFingerprint.createParcelFingerprint(cmsEncryptedAsice),
-                    maskinportenToken);
-
-            String jwt = createJWT.createJWT(finalizedSBD);
+            String jwt = createStandardBusinessDocumentJWT.createStandardBusinessDocumentJWT(shipment, cmsEncryptedAsice, maskinportenToken);
 
             webClient.post()
                     .uri("/send")

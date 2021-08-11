@@ -3,7 +3,7 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import no.digdir.dpi.client.domain.AsicEAttachable;
 import no.digdir.dpi.client.domain.BusinessCertificate;
-import org.etsi.uri._01903.v1_3.*;
+import no.digdir.dpi.client.etsi.*;
 import org.springframework.stereotype.Component;
 import org.w3._2000._09.xmldsig_.DigestMethod;
 import org.w3._2000._09.xmldsig_.X509IssuerSerialType;

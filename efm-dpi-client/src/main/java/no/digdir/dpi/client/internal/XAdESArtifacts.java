@@ -1,7 +1,7 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.Value;
-import org.etsi.uri._01903.v1_3.QualifyingProperties;
+import no.digdir.dpi.client.etsi.QualifyingProperties;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

@@ -16,8 +16,8 @@
     </jaxb:globalBindings>
 
     <jaxb:bindings schemaLocation="../xsd/sdp-manifest.xsd">
-
         <jaxb:schemaBindings>
+            <jaxb:package name="no.digdir.dpi.client.sdp" />
             <jaxb:nameXmlTransform>
                 <jaxb:typeName prefix="SDP"/>
                 <jaxb:anonymousTypeName prefix="SDP"/>
@@ -30,6 +30,12 @@
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement" name="manifest"/>
             </annox:annotate>
         </jaxb:bindings>
-
     </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="../xsd/etsi/XAdES.xsd">
+        <jaxb:schemaBindings>
+            <jaxb:package name="no.digdir.dpi.client.etsi" />
+        </jaxb:schemaBindings>
+    </jaxb:bindings>
+
 </jaxb:bindings>

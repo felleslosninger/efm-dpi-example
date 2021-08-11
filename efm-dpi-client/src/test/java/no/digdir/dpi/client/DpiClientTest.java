@@ -315,11 +315,11 @@ class DpiClientTest {
     }
 
     @SneakyThrows
-    private void assertThatParcelIsCorrect(StandardBusinessDocument standardBusinessDocument, BodyPart sbdPart) {
-        assertThat(sbdPart.getContentType()).isEqualTo("application/cms");
-        assertThat(sbdPart.getFileName()).isEqualTo("asic.cms");
+    private void assertThatParcelIsCorrect(StandardBusinessDocument standardBusinessDocument, BodyPart cmsPart) {
+        assertThat(cmsPart.getContentType()).isEqualTo("application/cms");
+        assertThat(cmsPart.getFileName()).isEqualTo("asic.cms");
 
-        SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
+        SharedByteArrayInputStream content = (SharedByteArrayInputStream) cmsPart.getContent();
         InputStream asicInputStream = decryptCMSDocument.decrypt(content);
         Parcel parcel = parcelParser.parse(
                 standardBusinessDocument.getStandardBusinessDocumentHeader().getDocumentIdentification().getInstanceIdentifier(),

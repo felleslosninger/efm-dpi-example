@@ -1,9 +1,8 @@
 package no.digdir.dpi.client.internal;
 
-import lombok.RequiredArgsConstructor;
-import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.internal.domain.Manifest;
+import no.digdir.dpi.client.sdp.SDPManifest;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.oxm.MarshallingFailureException;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
@@ -14,11 +13,23 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 
 @Component
-@RequiredArgsConstructor
 public class CreateManifest {
 
     private final Jaxb2Marshaller marshaller;
     private final SDPBuilder sdpBuilder;
+
+    public CreateManifest(SDPBuilder sdpBuilder) throws java.lang.Exception {
+        this.marshaller = createJaxb2Marshaller();
+        this.sdpBuilder = sdpBuilder;
+    }
+
+    private Jaxb2Marshaller createJaxb2Marshaller() throws java.lang.Exception {
+        Jaxb2Marshaller m = new Jaxb2Marshaller();
+        m.setClassesToBeBound(SDPManifest.class);
+        m.setSchema(Schemas.SDP_MANIFEST_SCHEMA);
+        m.afterPropertiesSet();
+        return m;
+    }
 
     public Manifest createManifest(Shipment shipment) {
         SDPManifest sdpManifest = sdpBuilder.createManifest(shipment);

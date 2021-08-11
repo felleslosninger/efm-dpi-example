@@ -14,7 +14,6 @@ import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.Validator;
-import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.difi.move.common.cert.KeystoreProvider;
 import no.difi.move.common.cert.KeystoreProviderException;
 import no.difi.move.common.config.KeystoreProperties;
@@ -23,6 +22,7 @@ import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.messagetypes.MessageType;
 import no.digdir.dpi.client.internal.*;
+import no.digdir.dpi.client.internal.domain.CreateStandardBusinessDocumentJWT;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -38,7 +38,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -70,9 +69,7 @@ public class DpiClientConfig {
     @Bean
     public DpiClient dpiClient(CreateCmsEncryptedAsice createCmsEncryptedAsice,
                                CreateMaskinportenToken createMaskinportenToken,
-                               CreateParcelFingerprint createParcelFingerprint,
-                               StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer,
-                               CreateJWT createJWT,
+                               CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT,
                                CreateMultipart createMultipart,
                                DpiClientErrorHandler dpiClientErrorHandler,
                                InMemoryWithTempFileFallbackResourceFactory resourceFactory,
@@ -80,9 +77,7 @@ public class DpiClientConfig {
         return new DpiClientImpl(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
-                createParcelFingerprint,
-                standBusinessDocumentJsonFinalizer,
-                createJWT,
+                createStandardBusinessDocumentJWT,
                 createMultipart,
                 WebClient.builder()
                         .baseUrl(properties.getUri())
@@ -133,7 +128,11 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public JwtTokenClient jwtTokenClient() {
+    public CreateMaskinportenToken createMaskinportenToken() {
+        return new CreateMaskinportenToken(jwtTokenClient());
+    }
+
+    private JwtTokenClient jwtTokenClient() {
         return new JwtTokenClient(new JwtTokenConfig(
                 properties.getOidc().getClientId(),
                 properties.getOidc().getUrl().toString(),
@@ -165,16 +164,6 @@ public class DpiClientConfig {
         AlgorithmIdentifier pSource = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_pSpecified, new DEROctetString(new byte[0]));
         ASN1Encodable parameters = new RSAESOAEPparams(hash, mask, pSource);
         return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_RSAES_OAEP, parameters);
-    }
-
-    @Bean
-    @SneakyThrows
-    public Jaxb2Marshaller jaxb2Marshaller() {
-        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setClassesToBeBound(SDPManifest.class);
-        marshaller.setSchema(Schemas.SDP_MANIFEST_SCHEMA);
-        marshaller.afterPropertiesSet();
-        return marshaller;
     }
 
     @Bean
@@ -253,5 +242,10 @@ public class DpiClientConfig {
     @SneakyThrows
     private KeyStore loadTrustStore(KeystoreProperties properties) {
         return KeystoreProvider.loadKeyStore(properties);
+    }
+
+    @Bean
+    public FileExtensionMapper fileExtensionMapper() {
+        return new FileExtensionMapper();
     }
 }

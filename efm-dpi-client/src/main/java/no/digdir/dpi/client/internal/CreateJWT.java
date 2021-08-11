@@ -7,6 +7,7 @@ import com.nimbusds.jose.Payload;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 
 import java.util.Map;
 
@@ -19,8 +20,8 @@ public class CreateJWT {
     private final JWSSigner jwsSigner;
 
     @SneakyThrows
-    public String createJWT(Map<String, Object> jsonObject) {
-        Payload payload = new Payload(jsonObject);
+    public String createJWT(Map<String, Object> sbd) {
+        Payload payload = new Payload(new JSONObject(sbd));
         JWSObject jwsObject = new JWSObject(jwsHeader, payload);
         jwsObject.sign(jwsSigner);
         return jwsObject.serialize();

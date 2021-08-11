@@ -1,12 +1,12 @@
 package no.digdir.dpi.client;
 
 import lombok.RequiredArgsConstructor;
-import no.difi.begrep.sdp.schema_v10.SDPDokument;
-import no.difi.begrep.sdp.schema_v10.SDPDokumentData;
-import no.difi.begrep.sdp.schema_v10.SDPManifest;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.MetadataDocument;
 import no.digdir.dpi.client.domain.Parcel;
+import no.digdir.dpi.client.sdp.SDPDokument;
+import no.digdir.dpi.client.sdp.SDPDokumentData;
+import no.digdir.dpi.client.sdp.SDPManifest;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 

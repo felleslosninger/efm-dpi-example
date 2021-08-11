@@ -3,14 +3,12 @@ package no.digdir.dpi.client;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 @Slf4j
-@Component
 public class FileExtensionMapper {
 
     private final Map<String, String> mimeTypeMap = new HashMap<>();

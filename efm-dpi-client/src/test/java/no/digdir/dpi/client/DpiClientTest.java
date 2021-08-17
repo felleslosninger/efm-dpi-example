@@ -4,9 +4,16 @@ package no.digdir.dpi.client;
 import com.nimbusds.jose.Payload;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
+import no.difi.meldingsutveksling.domain.sbdh.Authority;
+import no.difi.meldingsutveksling.domain.sbdh.PartnerIdentification;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
 import no.digdir.dpi.client.domain.*;
+import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
+import no.digdir.dpi.client.domain.messagetypes.Digital;
+import no.digdir.dpi.client.domain.messagetypes.Utskrift;
+import no.digdir.dpi.client.domain.sbd.*;
+import no.digdir.dpi.client.internal.CreateInstanceIdentifier;
 import no.digdir.dpi.client.internal.UnpackJWT;
 import no.digdir.dpi.client.internal.UnpackStandardBusinessDocument;
 import org.apache.commons.io.IOUtils;
@@ -26,6 +33,7 @@ import org.mockserver.model.RequestDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,10 +49,9 @@ import javax.mail.util.SharedByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -52,6 +59,7 @@ import static net.javacrumbs.jsonunit.core.ConfigurationWhen.paths;
 import static net.javacrumbs.jsonunit.core.ConfigurationWhen.then;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -80,14 +88,11 @@ class DpiClientTest {
     @Autowired
     private UnpackStandardBusinessDocument unpackStandardBusinessDocument;
 
-    @Value("classpath:/digital-sbd.json")
-    private Resource digitalSbd;
+    @MockBean
+    private CreateInstanceIdentifier createInstanceIdentifier;
 
     @Value("classpath:/digital_ready_for_send-sbd.json")
     private Resource digitalReadyForSendSbd;
-
-    @Value("classpath:/utskrift-sbd.json")
-    private Resource utskriftSbd;
 
     @Value("classpath:/utskrift_ready_for_send-sbd.json")
     private Resource utskriftReadyForSendSbd;
@@ -110,13 +115,16 @@ class DpiClientTest {
     @BeforeEach
     public void beforeEach(MockServerClient client) {
         client.when(request()
-                .withMethod("POST")
-                .withPath("/token"))
+                        .withMethod("POST")
+                        .withPath("/token"))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
                         .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
                 );
+
+        given(createInstanceIdentifier.createInstanceIdentifier())
+                .willReturn("ff88849c-e281-4809-8555-7cd54952b916");
     }
 
     @AfterEach
@@ -126,12 +134,87 @@ class DpiClientTest {
 
     @Test
     void testSendDigital(MockServerClient client) {
-        testSend(client, digitalSbd, digitalReadyForSendSbd);
+        testSend(client, getDpiDigitalTestInput(), digitalReadyForSendSbd);
+    }
+
+    private DpiTestInput getDpiDigitalTestInput() {
+        return createDpiTestInput(new Digital()
+                .setAvsender(new Avsender()
+                        .setVirksomhetsidentifikator(
+                                new Identifikator()
+                                        .setAuthority(Authority.ISO6523_ACTORID_UPIS)
+                                        .setValue("0192:999888999")
+                        ))
+                .setMottaker(new Personmottaker()
+                        .setPostkasseadresse("ola.nordmann#9YDT")
+                )
+                .setSikkerhetsnivaa(3)
+                .setVirkningsdato(LocalDate.parse("2021-01-01"))
+                .setVirkningstidspunkt(OffsetDateTime.parse("2021-01-01T08:00:00.000+01:00"))
+                .setAapningskvittering(false)
+                .setIkkesensitivtittel(new Ikkesensitivtittel()
+                        .setSpraak("NO")
+                        .setTittel("ikkeSensitivTittel"))
+                .setVarsler(new Varsler()
+                        .setEpostvarsel(new Epostvarsel()
+                                .setEpostadresse("test@epost.no")
+                                .setVarslingstekst("Dette er en varslingstekst")
+                                .setSpraak("NO")
+                                .setRepetisjoner(Arrays.asList(1, 7)))
+                        .setSmsvarsel(new Smsvarsel()
+                                .setMobiltelefonnummer("12345678")
+                                .setVarslingstekst("Dette er en varslingstekst")
+                                .setSpraak("NO")
+                                .setRepetisjoner(Arrays.asList(1, 7)))
+                )
+        );
     }
 
     @Test
     void testSendFysisk(MockServerClient client) {
-        testSend(client, utskriftSbd, utskriftReadyForSendSbd);
+        testSend(client, createDpiTestInput(new Utskrift()
+                .setAvsender(new Avsender()
+                        .setVirksomhetsidentifikator(new Identifikator()
+                                .setAuthority(Authority.ISO6523_ACTORID_UPIS)
+                                .setValue("0192:999888999")))
+                .setMottaker(new AdresseInformasjon()
+                        .setNavn("navn")
+                        .setAdresselinje1("adresselinje1")
+                        .setAdresselinje2("adresselinje2")
+                        .setAdresselinje3("adresselinje3")
+                        .setAdresselinje4("adresselinje4")
+                        .setPostnummer("1234")
+                        .setPoststed("poststed"))
+                .setUtskriftstype(Utskrift.Utskriftstype.SORT_HVIT)
+                .setPosttype(Utskrift.Posttype.B)
+                .setRetur(new Retur()
+                        .setMottaker(new AdresseInformasjon()
+                                .setNavn("navn")
+                                .setAdresselinje1("adresselinje1")
+                                .setAdresselinje2("adresselinje2")
+                                .setAdresselinje3("adresselinje3")
+                                .setAdresselinje4("adresselinje4")
+                                .setPostnummer("1234")
+                                .setPoststed("poststed"))
+                        .setReturposthaandtering(Retur.Returposthaandtering.DIREKTE_RETUR))
+        ), utskriftReadyForSendSbd);
+    }
+
+    private DpiTestInput createDpiTestInput(BusinessMessage businessMessage) {
+        return new DpiTestInput()
+                .setSenderOrganizationIdentifier(new PartnerIdentification()
+                        .setAuthority(Authority.ISO6523_ACTORID_UPIS)
+                        .setValue("0192:987654321"))
+                .setReceiverOrganizationIdentifier(new PartnerIdentification()
+                        .setAuthority(Authority.ISO6523_ACTORID_UPIS)
+                        .setValue("0192:123456789"))
+                .setConversationId("37efbd4c-413d-4e2c-bbc5-257ef4a65a45")
+                .setExpectedResponseDateTime(OffsetDateTime.parse("2021-04-21T15:29:58.753+02:00"))
+                .setBusinessMessage(businessMessage)
+                .setMainDocument(hoveddokument)
+                .setAttachments(Collections.singletonList(vedlegg))
+                .setMailbox("dummy")
+                .setReceiverCertificate(sertifikat);
     }
 
     @Test
@@ -140,7 +223,9 @@ class DpiClientTest {
                 .withBody("{}")
                 .withStatusCode(400);
 
-        assertThatThrownBy(() -> send(client, digitalSbd, httpResponse))
+        DpiTestInput input = getDpiDigitalTestInput();
+
+        assertThatThrownBy(() -> send(client, input, httpResponse))
                 .isInstanceOf(DpiException.class)
                 .hasMessage("400 Bad Request from POST http://localhost:8900/dpi/send")
                 .hasCauseInstanceOf(WebClientResponseException.BadRequest.class);
@@ -151,8 +236,8 @@ class DpiClientTest {
         UUID uuid = UUID.randomUUID();
 
         client.when(request()
-                .withMethod("GET")
-                .withPath(String.format("/dpi/statuses/%s", uuid)))
+                        .withMethod("GET")
+                        .withPath(String.format("/dpi/statuses/%s", uuid)))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
@@ -185,8 +270,8 @@ class DpiClientTest {
     @Disabled
     void testGetMessages(MockServerClient client) {
         client.when(request()
-                .withMethod("GET")
-                .withPath("/dpi/messages"))
+                        .withMethod("GET")
+                        .withPath("/dpi/messages"))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
@@ -218,8 +303,8 @@ class DpiClientTest {
         ThreadLocalRandom.current().nextBytes(bytes);
 
         client.when(request()
-                .withMethod("GET")
-                .withPath(path))
+                        .withMethod("GET")
+                        .withPath(path))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
@@ -242,8 +327,8 @@ class DpiClientTest {
         String path = String.format("/dpi/setmessageread/%s", uuid);
 
         client.when(request()
-                .withMethod("POST")
-                .withPath(path))
+                        .withMethod("POST")
+                        .withPath(path))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
@@ -258,8 +343,8 @@ class DpiClientTest {
     }
 
     @SneakyThrows
-    private void testSend(MockServerClient client, Resource in, Resource out) {
-        MimeMultipart mimeMultipart = send(client, in, response()
+    private void testSend(MockServerClient client, DpiTestInput input, Resource out) {
+        MimeMultipart mimeMultipart = send(client, input, response()
                 .withStatusCode(200));
         assertThat(mimeMultipart.getCount()).isEqualTo(2);
         StandardBusinessDocument standardBusinessDocument = assertThatStandardBusinessDocumentIsCorrect(mimeMultipart.getBodyPart(0), out);
@@ -285,7 +370,7 @@ class DpiClientTest {
         return standardBusinessDocument;
     }
 
-    private MimeMultipart send(MockServerClient client, Resource in, HttpResponse httpResponse) throws MessagingException {
+    private MimeMultipart send(MockServerClient client, DpiTestInput input, HttpResponse httpResponse) throws MessagingException {
         HttpRequest requestDefinition = request()
                 .withMethod("POST")
                 .withPath("/dpi/send");
@@ -293,14 +378,7 @@ class DpiClientTest {
         client.when(requestDefinition)
                 .respond(httpResponse);
 
-        Shipment shipment = shipmentFactory.getShipment(DpiTestInput.builder()
-                .standardBusinessDocument(in)
-                .mainDocument(hoveddokument)
-                .attachments(Collections.singletonList(vedlegg))
-                .mailbox("dummy")
-                .receiverCertificate(sertifikat)
-                .build()
-        );
+        Shipment shipment = shipmentFactory.getShipment(input);
 
         dpiClient.sendMessage(shipment);
 

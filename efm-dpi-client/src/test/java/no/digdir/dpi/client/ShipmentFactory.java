@@ -1,13 +1,10 @@
 package no.digdir.dpi.client;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.BusinessCertificate;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.internal.DpiMapper;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -21,19 +18,17 @@ import java.util.stream.Collectors;
 public class ShipmentFactory {
 
     private final FileExtensionMapper fileExtensionMapper;
-    private final DpiMapper dpiMapper;
 
     public Shipment getShipment(DpiTestInput input) {
         return new Shipment()
-                .setStandardBusinessDocument(getStandardBusinessDocument(input))
+                .setSenderOrganizationIdentifier(input.getSenderOrganizationIdentifier())
+                .setReceiverOrganizationIdentifier(input.getReceiverOrganizationIdentifier())
+                .setConversationId(input.getConversationId())
+                .setExpectedResponseDateTime(input.getExpectedResponseDateTime())
+                .setBusinessMessage(input.getBusinessMessage())
                 .setParcel(getParcel(input))
                 .setReceiverBusinessCertificate(getReceiverCertificate(input))
                 .setLanguage("NO");
-    }
-
-    @SneakyThrows
-    private StandardBusinessDocument getStandardBusinessDocument(DpiTestInput input) {
-        return dpiMapper.readStandardBusinessDocument(input.getStandardBusinessDocument());
     }
 
     private BusinessCertificate getReceiverCertificate(DpiTestInput input) {

@@ -8,7 +8,7 @@ import no.digdir.dpi.client.domain.sbd.Dokumentpakkefingeravtrykk;
 import no.digdir.dpi.client.domain.sbd.Retur;
 
 @Data
-public class Utskrift implements BusinessMessage, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
+public class Utskrift implements BusinessMessage, AvsenderHolder, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
 
     private Avsender avsender;
     private AdresseInformasjon mottaker;

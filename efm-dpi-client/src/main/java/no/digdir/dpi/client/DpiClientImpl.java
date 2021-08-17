@@ -3,9 +3,9 @@ package no.digdir.dpi.client;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.*;
 import no.digdir.dpi.client.internal.*;
-import no.digdir.dpi.client.internal.domain.CreateStandardBusinessDocumentJWT;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
@@ -25,6 +25,7 @@ public class DpiClientImpl implements DpiClient {
 
     private final CreateCmsEncryptedAsice createCmsEncryptedAsice;
     private final CreateMaskinportenToken createMaskinportenToken;
+    private final CreateStandardBusinessDocument createStandardBusinessDocument;
     private final CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT;
     private final CreateMultipart createMultipart;
     private final WebClient webClient;
@@ -36,8 +37,9 @@ public class DpiClientImpl implements DpiClient {
     @SneakyThrows
     public void sendMessage(Shipment shipment) {
         try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
-            String maskinportenToken = createMaskinportenToken.getMaskinportenToken();
-            String jwt = createStandardBusinessDocumentJWT.createStandardBusinessDocumentJWT(shipment, cmsEncryptedAsice, maskinportenToken);
+            String maskinportenToken = createMaskinportenToken.createMaskinportenToken();
+            StandardBusinessDocument sbd = createStandardBusinessDocument.createStandardBusinessDocument(shipment);
+            String jwt = createStandardBusinessDocumentJWT.createStandardBusinessDocumentJWT(sbd, cmsEncryptedAsice, maskinportenToken);
 
             webClient.post()
                     .uri("/send")
@@ -59,7 +61,7 @@ public class DpiClientImpl implements DpiClient {
     public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
         return webClient.get()
                 .uri("/statuses/{identifier}", identifier)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(MessageStatus.class);
@@ -69,7 +71,7 @@ public class DpiClientImpl implements DpiClient {
     public Flux<ReceivedMessage> getMessages() {
         return webClient.get()
                 .uri("/messages")
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(Message.class)
@@ -81,7 +83,7 @@ public class DpiClientImpl implements DpiClient {
         InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
         Flux<DataBuffer> dataBuffer = webClient.get()
                 .uri(downloadurl)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(DataBuffer.class);
@@ -103,7 +105,7 @@ public class DpiClientImpl implements DpiClient {
     public void markAsRead(UUID identifier) {
         webClient.post()
                 .uri("/setmessageread/{identifier}", identifier)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.getMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .toBodilessEntity()

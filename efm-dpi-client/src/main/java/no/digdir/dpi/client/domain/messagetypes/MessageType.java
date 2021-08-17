@@ -9,24 +9,30 @@ import java.util.stream.Collectors;
 @Getter
 public enum MessageType {
 
-    DIGITAL("digital", Digital.class),
-    UTSKRIFT("utskrift", Utskrift.class),
-    FEIL("feil", Feil.class),
-    LEVERINGSKVITTERING("leveringskvittering", Leveringskvittering.class),
-    AAPNINGSKVITTERING("aapningskvittering", Aapningskvittering.class),
-    VARSLINGFEILETKVITTERING("varslingfeiletkvittering", Varslingfeiletkvittering.class),
-    MOTTAKSKVITTERING("mottakskvittering", Mottakskvittering.class),
-    RETURPOSTKVITTERING("returpostkvittering", Returpostkvittering.class),
-    FLYTTET("flyttet", Flyttet.class);
+    DIGITAL("digital", Digital.class, Direction.OUTGOING),
+    UTSKRIFT("utskrift", Utskrift.class, Direction.OUTGOING),
+    FLYTTET("flyttet", Flyttet.class, Direction.OUTGOING),
+    FEIL("feil", Feil.class, Direction.INCOMING),
+    LEVERINGSKVITTERING("leveringskvittering", Leveringskvittering.class, Direction.INCOMING),
+    AAPNINGSKVITTERING("aapningskvittering", Aapningskvittering.class, Direction.INCOMING),
+    VARSLINGFEILETKVITTERING("varslingfeiletkvittering", Varslingfeiletkvittering.class, Direction.INCOMING),
+    MOTTAKSKVITTERING("mottakskvittering", Mottakskvittering.class, Direction.INCOMING),
+    RETURPOSTKVITTERING("returpostkvittering", Returpostkvittering.class, Direction.INCOMING);
 
     private final String type;
     private final Class<? extends BusinessMessage> clazz;
+    private final Direction direction;
     private final URI schemaUri;
+    private final String standard;
+    private final String process;
 
-    MessageType(String type, Class<? extends BusinessMessage> clazz) {
+    MessageType(String type, Class<? extends BusinessMessage> clazz, Direction direction) {
         this.type = type;
         this.clazz = clazz;
+        this.direction = direction;
         this.schemaUri = URI.create(String.format("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_%s_1_0.schema.json", type));
+        this.standard = String.format("urn:fdc:digdir.no:2020:innbyggerpost:xsd:digital::%s##urn:fdc:digdir.no:2020:innbyggerpost:schema:%s::1.0", type, type);
+        this.process = direction == Direction.OUTGOING ? String.format("urn:fdc:digdir.no:2020:profile:egovernment:innbyggerpost:%s:ver1.0", type) : null;
     }
 
     public static MessageType fromType(String type) {
@@ -35,5 +41,17 @@ public enum MessageType {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown MessageType = %s. Expecting one of %s",
                         type,
                         Arrays.stream(values()).map(MessageType::getType).collect(Collectors.joining(",")))));
+    }
+
+    public static MessageType fromClass(BusinessMessage businessMessage, Direction direction) {
+        return Arrays.stream(MessageType.values())
+                .filter(p -> p.getClazz().isInstance(businessMessage))
+                .filter(p -> p.getDirection() == direction)
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown BusinessMessage = %s. Expecting one of %s",
+                        businessMessage.getClass().getSimpleName(),
+                        Arrays.stream(values())
+                                .filter(p -> p.getDirection() == direction)
+                                .map(MessageType::getClazz).map(Class::getSimpleName).collect(Collectors.joining(",")))));
     }
 }

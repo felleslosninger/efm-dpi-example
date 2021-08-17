@@ -18,15 +18,15 @@ import java.util.List;
 public class DpiClientProperties {
 
     @NotNull
-    String uri;
+    private String uri;
 
     @Valid
     @NotNull
     private Timeout timeout;
 
-    int temporaryFileThreshold = 10 * 1000 * 1000;
-    File temporaryFileDirectory;
-    int initialBufferSize = 100000;
+    private int temporaryFileThreshold = 10 * 1000 * 1000;
+    private File temporaryFileDirectory;
+    private int initialBufferSize = 100000;
 
     @Valid
     private KeystoreProperties keystore;

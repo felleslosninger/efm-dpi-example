@@ -1,9 +1,7 @@
 package no.digdir.dpi.client.internal;
 
-import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Shipment;
-import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
 import no.digdir.dpi.client.domain.messagetypes.PersonmottakerHolder;
 import no.digdir.dpi.client.domain.sbd.Avsender;
 import no.digdir.dpi.client.domain.sbd.Identifikator;
@@ -27,8 +25,7 @@ public class SDPBuilder {
     }
 
     private SDPAvsender getAvsender(Shipment shipment) {
-        StandardBusinessDocument sbd = shipment.getStandardBusinessDocument();
-        return sbd.getBusinessMessage(BusinessMessage.class)
+        return Optional.ofNullable(shipment.getBusinessMessage())
                 .map(message -> getAvsender(message.getAvsender()))
                 .orElse(null);
     }
@@ -76,7 +73,7 @@ public class SDPBuilder {
     }
 
     private SDPPerson getPerson(Shipment shipment) {
-        return shipment.getStandardBusinessDocument().getBusinessMessage(PersonmottakerHolder.class)
+        return shipment.getBusinessMessage(PersonmottakerHolder.class)
                 .map(PersonmottakerHolder::getMottaker)
                 .map(mottaker ->
                         SDPPerson.builder()

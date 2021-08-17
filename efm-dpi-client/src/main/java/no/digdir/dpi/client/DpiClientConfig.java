@@ -22,7 +22,6 @@ import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.messagetypes.MessageType;
 import no.digdir.dpi.client.internal.*;
-import no.digdir.dpi.client.internal.domain.CreateStandardBusinessDocumentJWT;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -32,6 +31,7 @@ import org.bouncycastle.asn1.pkcs.RSAESOAEPparams;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cms.CMSAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -69,6 +69,7 @@ public class DpiClientConfig {
     @Bean
     public DpiClient dpiClient(CreateCmsEncryptedAsice createCmsEncryptedAsice,
                                CreateMaskinportenToken createMaskinportenToken,
+                               CreateStandardBusinessDocument createStandardBusinessDocument,
                                CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT,
                                CreateMultipart createMultipart,
                                DpiClientErrorHandler dpiClientErrorHandler,
@@ -77,6 +78,7 @@ public class DpiClientConfig {
         return new DpiClientImpl(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
+                createStandardBusinessDocument,
                 createStandardBusinessDocumentJWT,
                 createMultipart,
                 WebClient.builder()
@@ -128,8 +130,15 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public CreateMaskinportenToken createMaskinportenToken() {
-        return new CreateMaskinportenToken(jwtTokenClient());
+    @ConditionalOnProperty(name="oidc.enable", prefix = "dpi.client", havingValue = "false")
+    public CreateMaskinportenToken createMaskinportenTokenMock() {
+        return new CreateMaskinportenTokenMock();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name="oidc.enable", prefix = "dpi.client", havingValue = "true")
+    public CreateMaskinportenToken createMaskinportenTokenImpl() {
+        return new CreateMaskinportenTokenImpl(jwtTokenClient());
     }
 
     private JwtTokenClient jwtTokenClient() {

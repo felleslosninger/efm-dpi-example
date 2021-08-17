@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Data
-public class Digital implements BusinessMessage, PersonmottakerHolder, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
+public class Digital implements BusinessMessage, AvsenderHolder, PersonmottakerHolder, DokumentpakkefingeravtrykkHolder, MaskinportentokenHolder {
 
     private Avsender avsender;
     private Personmottaker mottaker;

@@ -132,7 +132,7 @@ public class DpiClientConfig {
     @Bean
     @ConditionalOnProperty(name="oidc.enable", prefix = "dpi.client", havingValue = "false")
     public CreateMaskinportenToken createMaskinportenTokenMock() {
-        return new CreateMaskinportenTokenMock();
+        return new CreateMaskinportenTokenMock(properties.getOidc().getMock().getToken());
     }
 
     @Bean

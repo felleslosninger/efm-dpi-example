@@ -48,6 +48,13 @@ public class DpiClientProperties {
         private List<String> scopes;
         @NestedConfigurationProperty
         private KeystoreProperties keystore;
+        private Mock mock;
+
+        @Data
+        public static class Mock {
+
+            private String token;
+        }
     }
 
     @Data

@@ -13,11 +13,14 @@ public class MessageUnwrapper {
 
     private final UnpackJWT unpackJWT;
     private final UnpackStandardBusinessDocument unpackStandardBusinessDocument;
+    private final ReceivedMessageValidator receivedMessageValidator;
 
     public ReceivedMessage unwrap(Message message) {
-        return new ReceivedMessage()
+        ReceivedMessage receivedMessage = new ReceivedMessage()
                 .setMessage(message)
                 .setStandardBusinessDocument(getStandardBusinessDocument(message));
+        receivedMessageValidator.validate(receivedMessage);
+        return receivedMessage;
     }
 
     private StandardBusinessDocument getStandardBusinessDocument(Message message) {

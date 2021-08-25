@@ -2,14 +2,17 @@
 
 Følgende properties må settes:
 
-example.dpi.keystore.path
-example.dpi.keystore.alias
-example.dpi.keystore.password
+dpi.client.type   # Tilatte verdier er: file, web - Default er web
+dpi.client.uri    # For type=web skal denne være URLen til hjørne2. For type=file skal denne være URLen til katalogen man ønsker å lagre til.
+dpi.client.keystore.path
+dpi.client.keystore.alias
+dpi.client.keystore.password
+dpi.client.oidc.clientId
 
-Så kan du kjøre DpiExampleApplication med -c (businessCertificate) opsjonen og minst en fil.
-Hvis mer enn en fil spesifisere, så vil den første bli brukt som hoveddokument og de resterende blir vedlegg. 
+Så kan du kjøre DpiExampleApplication med -c (businessCertificate) opsjonen og minst to filer.
+Den første vil bli lest som SBD. Den andre vil tolkes som hoveddoument og de resterende som vedlegg.
 
 Eksempel:
 
--c ./receivercertificate.cer ./maindocument.pdf ./attachment1.pdf ./attachment2.jpg
+-c ./receiverCertificate.cer ./standardBusinessDocument.sbd ./mainDocument.pdf ./attachment1.pdf ./attachment2.jpg
 

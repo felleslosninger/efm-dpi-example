@@ -22,7 +22,6 @@ public class CommandLineConverter {
                 .standardBusinessDocument(resources.getStandardBusinessDocument())
                 .mainDocument(resources.getMainDocument())
                 .attachments(resources.getAttachments())
-                .mailbox(commandLine.getOptionValue("mailbox", "Dummy"))
                 .receiverCertificate(new FileSystemResource(commandLine.getOptionValue("certificate")))
                 .build();
     }

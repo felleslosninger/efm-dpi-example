@@ -18,7 +18,13 @@ import java.util.List;
 public class DpiClientProperties {
 
     @NotNull
+    private String type;
+
+    @NotNull
     private String uri;
+
+    @NotNull
+    private String schema;
 
     @Valid
     @NotNull
@@ -43,6 +49,7 @@ public class DpiClientProperties {
         @NotNull
         private boolean enable;
         private URL url;
+        private URL jwkUrl;
         private String audience;
         private String clientId;
         private List<String> scopes;

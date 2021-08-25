@@ -11,6 +11,5 @@ public class Smsvarsel {
 
     private String mobiltelefonnummer;
     private String varslingstekst;
-    private String spraak;
     private List<Integer> repetisjoner = new ArrayList<>();
 }

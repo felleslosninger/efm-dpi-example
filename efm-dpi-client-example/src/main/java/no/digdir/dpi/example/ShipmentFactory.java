@@ -42,7 +42,7 @@ public class ShipmentFactory {
                         .orElseThrow(() -> new IllegalArgumentException("Missing conversationId!"))
                 )
                 .setExpectedResponseDateTime(StandardBusinessDocumentUtils.getExpectedResponseDateTime(sbd)
-                        .orElseThrow(() -> new IllegalArgumentException("Missing expectedResponseDateTime!"))
+                        .orElse(null)
                 )
                 .setBusinessMessage(sbd.getBusinessMessage(BusinessMessage.class)
                         .orElseThrow(() -> new IllegalArgumentException("Missing business message")))

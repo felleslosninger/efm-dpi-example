@@ -14,6 +14,5 @@ public class DpiExampleInput {
     @NonNull Resource standardBusinessDocument;
     @NonNull Resource mainDocument;
     @NonNull List<Resource> attachments;
-    @NonNull String mailbox;
     @NonNull Resource receiverCertificate;
 }

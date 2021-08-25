@@ -159,12 +159,10 @@ class DpiClientTest {
                         .setEpostvarsel(new Epostvarsel()
                                 .setEpostadresse("test@epost.no")
                                 .setVarslingstekst("Dette er en varslingstekst")
-                                .setSpraak("NO")
                                 .setRepetisjoner(Arrays.asList(1, 7)))
                         .setSmsvarsel(new Smsvarsel()
                                 .setMobiltelefonnummer("12345678")
                                 .setVarslingstekst("Dette er en varslingstekst")
-                                .setSpraak("NO")
                                 .setRepetisjoner(Arrays.asList(1, 7)))
                 )
         );

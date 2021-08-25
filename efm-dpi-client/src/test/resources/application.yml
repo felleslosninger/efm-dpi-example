@@ -17,8 +17,10 @@ dpi:
                 password: ${dpi.client.keystore.password}
                 path: ${dpi.client.keystore.path}
                 type: ${dpi.client.keystore.type}
-            scopes: '[dummy]'
-            url: http://localhost:8900/token
+            scopes:
+                - 'dummy'
+            url: 'http://localhost:8900/token'
+            jwkUrl: 'http://localhost:8900/jwk'
         temporary-file-threshold: 10000000
         timeout:
             connect: 5000

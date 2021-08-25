@@ -38,6 +38,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -45,6 +48,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.Security;
 import java.util.*;
@@ -71,16 +75,31 @@ public class DpiClientConfig {
                                CreateMaskinportenToken createMaskinportenToken,
                                CreateStandardBusinessDocument createStandardBusinessDocument,
                                CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT,
-                               CreateMultipart createMultipart,
-                               DpiClientErrorHandler dpiClientErrorHandler,
-                               InMemoryWithTempFileFallbackResourceFactory resourceFactory,
+                               Corner2Client corner2Client,
                                MessageUnwrapper messageUnwrapper) {
         return new DpiClientImpl(
                 createCmsEncryptedAsice,
                 createMaskinportenToken,
                 createStandardBusinessDocument,
                 createStandardBusinessDocumentJWT,
-                createMultipart,
+                corner2Client,
+                messageUnwrapper);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "dpi.client", value = "type", havingValue = "file")
+    public Corner2Client localDirectoryCorner2Client() {
+        return new LocalDirectoryCorner2Client(properties);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "dpi.client", value = "type", havingValue = "web", matchIfMissing = true)
+    public Corner2Client corner2ClientImpl(
+            DpiClientErrorHandler dpiClientErrorHandler,
+            CreateMaskinportenToken createMaskinportenToken,
+            CreateMultipart createMultipart,
+            InMemoryWithTempFileFallbackResourceFactory resourceFactory) {
+        return new Corner2ClientImpl(
                 WebClient.builder()
                         .baseUrl(properties.getUri())
                         .filter(logRequest())
@@ -94,8 +113,9 @@ public class DpiClientConfig {
                                 }))))
                         .build(),
                 dpiClientErrorHandler,
-                resourceFactory,
-                messageUnwrapper);
+                createMaskinportenToken,
+                createMultipart,
+                resourceFactory);
     }
 
     private static ExchangeFilterFunction logRequest() {
@@ -130,13 +150,13 @@ public class DpiClientConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name="oidc.enable", prefix = "dpi.client", havingValue = "false")
+    @ConditionalOnProperty(name = "oidc.enable", prefix = "dpi.client", havingValue = "false")
     public CreateMaskinportenToken createMaskinportenTokenMock() {
         return new CreateMaskinportenTokenMock(properties.getOidc().getMock().getToken());
     }
 
     @Bean
-    @ConditionalOnProperty(name="oidc.enable", prefix = "dpi.client", havingValue = "true")
+    @ConditionalOnProperty(name = "oidc.enable", prefix = "dpi.client", havingValue = "true")
     public CreateMaskinportenToken createMaskinportenTokenImpl() {
         return new CreateMaskinportenTokenImpl(jwtTokenClient());
     }
@@ -159,6 +179,19 @@ public class DpiClientConfig {
                         .x509CertChain(Collections.singletonList(Base64.encode(keyPair.getBusinessCertificate().getX509Certificate().getEncoded())))
                         .build(),
                 new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
+    }
+
+    @Bean
+    public ReceivedMessageValidator assertCorrespondingMaskinportentoken(JwtClaimService jwtClaimService) {
+        return new ReceivedMessageValidatorImpl(getJwtDecoder(), jwtClaimService);
+    }
+
+    private JwtDecoder getJwtDecoder() {
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(
+                        properties.getOidc().getJwkUrl().toExternalForm())
+                .build();
+        jwtDecoder.setJwtValidator(p -> OAuth2TokenValidatorResult.success());
+        return jwtDecoder;
     }
 
     @Bean
@@ -185,19 +218,33 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator() {
-        return new JsonDigitalPostSchemaValidator(new Validator(), getSchemaMap());
+    public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator(UrlRewriter urlRewriter) {
+        return new JsonDigitalPostSchemaValidator(new Validator(), getSchemaMap(urlRewriter));
     }
 
-    private Map<String, Schema> getSchemaMap() {
-        SchemaStore schemaStore = new SchemaStore(getUrlRewriter());
+    private Map<String, Schema> getSchemaMap(UrlRewriter urlRewriter) {
+        SchemaStore schemaStore = new SchemaStore(urlRewriter);
         return Collections.unmodifiableMap(
                 Arrays.stream(MessageType.values())
                         .collect(Collectors.toMap(MessageType::getType, p -> loadSchema(schemaStore, p.getSchemaUri()))));
     }
 
-    private UrlRewriter getUrlRewriter() {
-        return uri -> URI.create(String.format("classpath:/schema/%s%s", uri.getHost(), uri.getPath()));
+    @Bean
+    @ConditionalOnProperty(name = "schema", prefix = "dpi.client", havingValue = "online")
+    public UrlRewriter onlineUrlRewriter() {
+        return uri -> uri;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "schema", prefix = "dpi.client", havingValue = "offline", matchIfMissing = true)
+    public UrlRewriter offlineUrlRewriter() {
+        return uri -> {
+            try {
+                return this.getClass().getClassLoader().getResource(String.format("schema/%s%s", uri.getHost(), uri.getPath())).toURI();
+            } catch (URISyntaxException e) {
+                throw new Exception("OH no!", e);
+            }
+        };
     }
 
     @SneakyThrows
@@ -256,5 +303,11 @@ public class DpiClientConfig {
     @Bean
     public FileExtensionMapper fileExtensionMapper() {
         return new FileExtensionMapper();
+    }
+
+    private static class Exception extends RuntimeException {
+        public Exception(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

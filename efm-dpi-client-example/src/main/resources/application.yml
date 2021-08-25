@@ -1,5 +1,7 @@
 dpi:
     client:
+        type: file
+        schema: online
         keystore:
             alias: ''
             lockProvider: false
@@ -8,8 +10,10 @@ dpi:
             type: jks
         uri: 'http://localhost:8081/dpi'
         oidc:
-            url: 'https://ver2.maskinporten.no/token'
-            audience: 'https://ver2.maskinporten.no/'
+            enable: true
+            url: 'https://ver1.maskinporten.no/token'
+            jwkUrl: 'https://ver1.maskinporten.no/jwk'
+            audience: 'https://ver1.maskinporten.no/'
             clientId: 'dpi_test'
             scopes:
                 - digitalpostinnbygger:send

@@ -11,11 +11,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DpiExampleCommandLineRunner implements CommandLineRunner {
     private final Options options = new Options()
-            .addOption(Option.builder("m")
-                    .longOpt("mailbox")
-                    .hasArg()
-                    .desc("Mailbox")
-                    .build())
             .addOption(Option.builder("c")
                     .longOpt("certificate")
                     .required()

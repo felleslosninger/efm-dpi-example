@@ -14,7 +14,10 @@ dpi:
             url: 'https://ver1.maskinporten.no/token'
             jwkUrl: 'https://ver1.maskinporten.no/jwk'
             audience: 'https://ver1.maskinporten.no/'
-            clientId: 'dpi_test'
+            send:
+                clientIdPrefix: 'MOVE_IP_'
+            receive:
+                clientId: 'MOVE_IP_991825827'
             scopes:
                 - digitalpostinnbygger:send
             keystore:

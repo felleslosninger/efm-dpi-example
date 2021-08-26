@@ -25,7 +25,7 @@ public class LocalDirectoryCorner2Client implements Corner2Client {
     private final DpiClientProperties properties;
 
     @Override
-    public void sendMessage(String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
+    public void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
         String base = UUID.randomUUID().toString();
         writeJWT(jwt, base);
         writeCmsEncryptedAsice(base, cmsEncryptedAsice);

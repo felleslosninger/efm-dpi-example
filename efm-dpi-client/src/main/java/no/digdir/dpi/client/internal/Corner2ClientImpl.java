@@ -29,10 +29,10 @@ public class Corner2ClientImpl implements Corner2Client {
     private final InMemoryWithTempFileFallbackResourceFactory resourceFactory;
 
     @Override
-    public void sendMessage(String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
+    public void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
         webClient.post()
                 .uri("/send")
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(maskinportentoken))
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(jwt, cmsEncryptedAsice)))
                 .retrieve()
@@ -45,7 +45,7 @@ public class Corner2ClientImpl implements Corner2Client {
     public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
         return webClient.get()
                 .uri("/statuses/{identifier}", identifier)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(MessageStatus.class);
@@ -55,7 +55,7 @@ public class Corner2ClientImpl implements Corner2Client {
     public Flux<Message> getMessages() {
         return webClient.get()
                 .uri("/messages")
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(Message.class);
@@ -66,7 +66,7 @@ public class Corner2ClientImpl implements Corner2Client {
         InMemoryWithTempFileFallbackResource cms = resourceFactory.getResource("dpi-", ".asic.cms");
         Flux<DataBuffer> dataBuffer = webClient.get()
                 .uri(downloadurl)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(DataBuffer.class);
@@ -88,7 +88,7 @@ public class Corner2ClientImpl implements Corner2Client {
     public void markAsRead(UUID identifier) {
         webClient.post()
                 .uri("/setmessageread/{identifier}", identifier)
-                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenToken()))
+                .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .toBodilessEntity()

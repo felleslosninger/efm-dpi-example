@@ -10,7 +10,7 @@ import java.net.URI;
 import java.util.UUID;
 
 public interface Corner2Client {
-    void sendMessage(String jwt, CmsEncryptedAsice cmsEncryptedAsice);
+    void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice);
 
     Flux<MessageStatus> getMessageStatuses(UUID identifier);
 

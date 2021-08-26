@@ -51,16 +51,26 @@ public class DpiClientProperties {
         private URL url;
         private URL jwkUrl;
         private String audience;
-        private String clientId;
         private List<String> scopes;
         @NestedConfigurationProperty
         private KeystoreProperties keystore;
         private Mock mock;
+        private Send send;
+        private Receive receive;
 
         @Data
         public static class Mock {
-
             private String token;
+        }
+
+        @Data
+        public static class Send {
+            private String clientIdPrefix;
+        }
+
+        @Data
+        public static class Receive {
+            private String clientId;
         }
     }
 

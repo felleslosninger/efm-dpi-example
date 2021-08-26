@@ -29,10 +29,11 @@ public class DpiClientImpl implements DpiClient {
     @SneakyThrows
     public void sendMessage(Shipment shipment) {
         try (CmsEncryptedAsice cmsEncryptedAsice = createCmsEncryptedAsice.createCmsEncryptedAsice(shipment)) {
-            String maskinportenToken = createMaskinportenToken.createMaskinportenToken();
+//            String maskinportenToken = createMaskinportenToken.createMaskinportenTokenForSending(shipment.getBusinessMessage().getAvsender());
+            String maskinportenToken = createMaskinportenToken.createMaskinportenTokenForReceiving();
             StandardBusinessDocument sbd = createStandardBusinessDocument.createStandardBusinessDocument(shipment);
             String jwt = createStandardBusinessDocumentJWT.createStandardBusinessDocumentJWT(sbd, cmsEncryptedAsice, maskinportenToken);
-            corner2Client.sendMessage(jwt, cmsEncryptedAsice);
+            corner2Client.sendMessage(maskinportenToken, jwt, cmsEncryptedAsice);
         } catch (DpiException e) {
             throw e;
         } catch (Exception e) {

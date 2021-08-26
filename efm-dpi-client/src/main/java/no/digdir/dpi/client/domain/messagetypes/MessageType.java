@@ -31,7 +31,7 @@ public enum MessageType {
         this.clazz = clazz;
         this.direction = direction;
         this.schemaUri = URI.create(String.format("https://docs.digdir.no/schemas/dpi/innbyggerpost_dpi_%s_1_0.schema.json", type));
-        this.standard = String.format("urn:fdc:digdir.no:2020:innbyggerpost:xsd:digital::%s##urn:fdc:digdir.no:2020:innbyggerpost:schema:%s::1.0", type, type);
+        this.standard = String.format("urn:fdc:digdir.no:2020:innbyggerpost:xsd::innbyggerpost##urn:fdc:digdir.no:2020:innbyggerpost:schema:%s::1.0", type);
         this.process = direction == Direction.OUTGOING ? String.format("urn:fdc:digdir.no:2020:profile:egovernment:innbyggerpost:%s:ver1.0", type) : null;
     }
 

@@ -24,6 +24,7 @@ public class Digital implements BusinessMessage, AvsenderHolder, PersonmottakerH
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private OffsetDateTime virkningstidspunkt;
     private Boolean aapningskvittering = false;
-    private Ikkesensitivtittel ikkesensitivtittel;
+    private String ikkesensitivtittel;
+    private String spraak;
     private Varsler varsler;
 }

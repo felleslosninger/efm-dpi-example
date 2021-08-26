@@ -22,6 +22,7 @@ import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.messagetypes.MessageType;
 import no.digdir.dpi.client.internal.*;
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -49,6 +50,8 @@ import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.Security;
 import java.util.*;
@@ -158,12 +161,14 @@ public class DpiClientConfig {
     @Bean
     @ConditionalOnProperty(name = "oidc.enable", prefix = "dpi.client", havingValue = "true")
     public CreateMaskinportenToken createMaskinportenTokenImpl() {
-        return new CreateMaskinportenTokenImpl(jwtTokenClient());
+        return new CreateMaskinportenTokenImpl(
+                jwtTokenClient(),
+                new CreateOidcClientId(properties.getOidc().getSend().getClientIdPrefix()));
     }
 
     private JwtTokenClient jwtTokenClient() {
         return new JwtTokenClient(new JwtTokenConfig(
-                properties.getOidc().getClientId(),
+                properties.getOidc().getReceive().getClientId(),
                 properties.getOidc().getUrl().toString(),
                 properties.getOidc().getAudience(),
                 properties.getOidc().getScopes(),
@@ -179,11 +184,6 @@ public class DpiClientConfig {
                         .x509CertChain(Collections.singletonList(Base64.encode(keyPair.getBusinessCertificate().getX509Certificate().getEncoded())))
                         .build(),
                 new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
-    }
-
-    @Bean
-    public ReceivedMessageValidator assertCorrespondingMaskinportentoken(JwtClaimService jwtClaimService) {
-        return new ReceivedMessageValidatorImpl(getJwtDecoder(), jwtClaimService);
     }
 
     private JwtDecoder getJwtDecoder() {
@@ -218,7 +218,12 @@ public class DpiClientConfig {
     }
 
     @Bean
+    @SneakyThrows
     public JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator(UrlRewriter urlRewriter) {
+        Path diskCacheName = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"))
+                .resolve("net.jimblackler.jsonschemafriend")
+                .resolve("cache");
+        FileUtils.deleteDirectory(diskCacheName.toFile());
         return new JsonDigitalPostSchemaValidator(new Validator(), getSchemaMap(urlRewriter));
     }
 

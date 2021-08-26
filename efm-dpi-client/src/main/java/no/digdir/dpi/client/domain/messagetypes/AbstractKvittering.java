@@ -12,7 +12,6 @@ abstract class AbstractKvittering implements Kvittering {
 
     private Avsender avsender;
     private Virksomhetmottaker mottaker;
-    private String maskinportentoken;
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private OffsetDateTime tidspunkt;
 }

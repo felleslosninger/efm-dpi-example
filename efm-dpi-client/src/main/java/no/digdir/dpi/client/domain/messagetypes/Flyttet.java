@@ -25,6 +25,7 @@ public class Flyttet implements BusinessMessage, DokumentpakkefingeravtrykkHolde
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private OffsetDateTime virkningstidspunkt;
     private Boolean aapningskvittering;
-    private Ikkesensitivtittel ikkesensitivtittel;
+    private String ikkesensitivtittel;
+    private String spraak;
     private Varsler varsler;
 }

@@ -13,10 +13,10 @@ public class UnpackStandardBusinessDocument {
     private final JsonDigitalPostSchemaValidator jsonDigitalPostSchemaValidator;
     private final DpiMapper dpiMapper;
 
-    public StandardBusinessDocument unpackStandardBusinessDocument(Payload payload) {
-        StandardBusinessDocument standardBusinessDocument = dpiMapper.readStandardBusinessDocument(payload.toString());
+    public StandardBusinessDocument unpackStandardBusinessDocument(String payload) {
+        StandardBusinessDocument standardBusinessDocument = dpiMapper.readStandardBusinessDocument(payload);
         String type = StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null);
-        jsonDigitalPostSchemaValidator.validate(payload.toJSONObject(), type);
+        jsonDigitalPostSchemaValidator.validate(new Payload(payload).toJSONObject(), type);
         return standardBusinessDocument;
     }
 }

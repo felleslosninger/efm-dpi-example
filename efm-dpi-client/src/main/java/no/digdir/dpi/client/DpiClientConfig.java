@@ -17,6 +17,7 @@ import net.jimblackler.jsonschemafriend.Validator;
 import no.difi.move.common.cert.KeystoreProvider;
 import no.difi.move.common.cert.KeystoreProviderException;
 import no.difi.move.common.config.KeystoreProperties;
+import no.difi.move.common.oauth.JWTDecoder;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;
 import no.digdir.dpi.client.domain.KeyPair;
@@ -39,9 +40,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -49,7 +47,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.KeyStore;
@@ -186,12 +183,10 @@ public class DpiClientConfig {
                 new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
     }
 
-    private JwtDecoder getJwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(
-                        properties.getOidc().getJwkUrl().toExternalForm())
-                .build();
-        jwtDecoder.setJwtValidator(p -> OAuth2TokenValidatorResult.success());
-        return jwtDecoder;
+    @Bean
+    @SneakyThrows
+    public UnpackJWT unpackJWT() {
+        return new UnpackJWT(new JWTDecoder(), properties.getOidc().getJwkUrl());
     }
 
     @Bean
@@ -241,14 +236,17 @@ public class DpiClientConfig {
     }
 
     @Bean
+    @SneakyThrows
     @ConditionalOnProperty(name = "schema", prefix = "dpi.client", havingValue = "offline", matchIfMissing = true)
     public UrlRewriter offlineUrlRewriter() {
+        URI jar = getClass().getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .toURI();
+
         return uri -> {
-            try {
-                return this.getClass().getClassLoader().getResource(String.format("schema/%s%s", uri.getHost(), uri.getPath())).toURI();
-            } catch (URISyntaxException e) {
-                throw new Exception("OH no!", e);
-            }
+            String name = String.format("schema/%s%s", uri.getHost(), uri.getPath());
+            return jar.resolve(name);
         };
     }
 
@@ -308,11 +306,5 @@ public class DpiClientConfig {
     @Bean
     public FileExtensionMapper fileExtensionMapper() {
         return new FileExtensionMapper();
-    }
-
-    private static class Exception extends RuntimeException {
-        public Exception(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 }

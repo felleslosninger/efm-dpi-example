@@ -1,58 +1,24 @@
 package no.digdir.dpi.client.internal;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jose.util.X509CertChainUtils;
+import com.nimbusds.jose.proc.BadJWSException;
 import lombok.RequiredArgsConstructor;
-import no.digdir.dpi.client.Blame;
-import no.digdir.dpi.client.DpiException;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import no.difi.move.common.oauth.JWTDecoder;
 
-import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
-import java.text.ParseException;
+import java.net.URL;
 
-@Component
 @RequiredArgsConstructor
 public class UnpackJWT {
 
-    public Payload getPayload(String jwt) {
-        JWSObject jwsObject = getJwsObject(jwt);
-        verify(jwsObject);
-        return jwsObject.getPayload();
-    }
+    private final JWTDecoder jwtDecoder;
+    private final URL jwkUrl;
 
-    private void verify(JWSObject jwsObject) {
+    public String getPayload(String serializedJwt) {
         try {
-            Assert.state(jwsObject.verify(getVerifier(jwsObject)), "Verifying JWT failed!");
-        } catch (IllegalStateException | JOSEException e) {
-            throw new UnpackJWT.Exception("Verifying JWT failed!", e);
-        }
-    }
-
-    private RSASSAVerifier getVerifier(JWSObject jwsObject) {
-        return new RSASSAVerifier((RSAPublicKey) getSigningCertificate(jwsObject).getPublicKey());
-    }
-
-    private JWSObject getJwsObject(String jwt) {
-        try {
-            return JWSObject.parse(jwt);
-        } catch (ParseException e) {
-            throw new UnpackJWT.Exception("Parsing JWT failed!", e);
-        }
-    }
-
-    private X509Certificate getSigningCertificate(JWSObject jwsObject) {
-        try {
-            return X509CertChainUtils.parse(jwsObject.getHeader().getX509CertChain())
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new DpiException("Can not find signing certificate!", Blame.SERVER));
-        } catch (ParseException e) {
-            throw new UnpackJWT.Exception("Can parse signing certificate!", e);
+            return jwkUrl != null
+                    ? jwtDecoder.getPayload(serializedJwt, jwkUrl)
+                    : jwtDecoder.getPayload(serializedJwt);
+        } catch (BadJWSException e) {
+            throw new Exception("Couldn't get payload from serialized JWT", e);
         }
     }
 

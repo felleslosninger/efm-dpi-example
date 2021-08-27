@@ -23,7 +23,6 @@ dpi:
             scopes:
                 - 'dummy'
             url: 'http://localhost:8900/token'
-            jwkUrl: 'http://localhost:8900/jwk'
         temporary-file-threshold: 10000000
         timeout:
             connect: 5000

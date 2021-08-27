@@ -21,7 +21,7 @@ public class MessageUnwrapper {
     }
 
     private StandardBusinessDocument getStandardBusinessDocument(Message message) {
-        Payload payload = unpackJWT.getPayload(message.getForettningsmelding());
+        String payload = unpackJWT.getPayload(message.getForettningsmelding());
         return unpackStandardBusinessDocument.unpackStandardBusinessDocument(payload);
     }
 }

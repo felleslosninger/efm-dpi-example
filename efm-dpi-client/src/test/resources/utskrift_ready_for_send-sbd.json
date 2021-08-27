@@ -53,8 +53,7 @@
         "adresselinje2": "adresselinje2",
         "adresselinje3": "adresselinje3",
         "adresselinje4": "adresselinje4",
-        "postnummer": "1234",
-        "poststed": "poststed"
+        "land": "land"
       },
       "utskriftstype": "SORT_HVIT",
       "posttype": "B",
@@ -64,7 +63,6 @@
           "adresselinje1": "adresselinje1",
           "adresselinje2": "adresselinje2",
           "adresselinje3": "adresselinje3",
-          "adresselinje4": "adresselinje4",
           "postnummer": "1234",
           "poststed": "poststed"
         },

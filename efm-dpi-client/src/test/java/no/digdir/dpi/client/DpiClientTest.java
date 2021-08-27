@@ -51,7 +51,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -180,8 +183,7 @@ class DpiClientTest {
                         .setAdresselinje2("adresselinje2")
                         .setAdresselinje3("adresselinje3")
                         .setAdresselinje4("adresselinje4")
-                        .setPostnummer("1234")
-                        .setPoststed("poststed"))
+                        .setLand("land"))
                 .setUtskriftstype(Utskrift.Utskriftstype.SORT_HVIT)
                 .setPosttype(Utskrift.Posttype.B)
                 .setRetur(new Retur()
@@ -190,7 +192,6 @@ class DpiClientTest {
                                 .setAdresselinje1("adresselinje1")
                                 .setAdresselinje2("adresselinje2")
                                 .setAdresselinje3("adresselinje3")
-                                .setAdresselinje4("adresselinje4")
                                 .setPostnummer("1234")
                                 .setPoststed("poststed"))
                         .setReturposthaandtering(Retur.Returposthaandtering.DIREKTE_RETUR))

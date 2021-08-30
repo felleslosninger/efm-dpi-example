@@ -239,14 +239,17 @@ public class DpiClientConfig {
     @SneakyThrows
     @ConditionalOnProperty(name = "schema", prefix = "dpi.client", havingValue = "offline", matchIfMissing = true)
     public UrlRewriter offlineUrlRewriter() {
-        URI jar = getClass().getProtectionDomain()
+        String path = getClass().getProtectionDomain()
                 .getCodeSource()
                 .getLocation()
-                .toURI();
+                .toURI()
+                .getPath();
+
+        log.info("JAR path = {}", path);
 
         return uri -> {
-            String name = String.format("schema/%s%s", uri.getHost(), uri.getPath());
-            return jar.resolve(name);
+            String name = String.format("file:%sschema/%s%s", path, uri.getHost(), uri.getPath());
+            return URI.create(name);
         };
     }
 

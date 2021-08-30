@@ -30,15 +30,16 @@ public class DpiClientProperties {
     @NotNull
     private Timeout timeout;
 
+    @Valid
+    @NotNull
+    private Certificate certificate;
+
     private int temporaryFileThreshold = 10 * 1000 * 1000;
     private File temporaryFileDirectory;
     private int initialBufferSize = 100000;
 
     @Valid
     private KeystoreProperties keystore;
-
-    @Valid
-    private KeystoreProperties trustStore;
 
     @Valid
     private Oidc oidc;
@@ -49,7 +50,6 @@ public class DpiClientProperties {
         @NotNull
         private boolean enable;
         private URL url;
-        private URL jwkUrl;
         private String audience;
         private List<String> scopes;
         @NestedConfigurationProperty
@@ -80,5 +80,12 @@ public class DpiClientProperties {
         private int connect;
         private int read;
         private int write;
+    }
+
+    @Data
+    public static class Certificate {
+
+        @NotNull
+        private String mode;
     }
 }

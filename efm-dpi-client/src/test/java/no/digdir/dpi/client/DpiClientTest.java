@@ -1,6 +1,7 @@
 package no.digdir.dpi.client;
 
 
+import com.nimbusds.jose.Payload;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
 import no.difi.meldingsutveksling.domain.sbdh.Authority;
@@ -355,14 +356,16 @@ class DpiClientTest {
 
         SharedByteArrayInputStream content = (SharedByteArrayInputStream) sbdPart.getContent();
         String jwt = IOUtils.toString(content, StandardCharsets.UTF_8);
-        String payload = unpackJWT.getPayload(jwt);
+        Payload payload = unpackJWT.getPayload(jwt);
         StandardBusinessDocument standardBusinessDocument = unpackStandardBusinessDocument.unpackStandardBusinessDocument(payload);
 
         String type = StandardBusinessDocumentUtils.getType(standardBusinessDocument).orElse(null);
 
-        assertThatJson(payload)
+        String expected = IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8);
+
+        assertThatJson(payload.toString())
                 .when(paths(String.format("standardBusinessDocument.%s.dokumentpakkefingeravtrykk.digestValue", type)), then(Option.IGNORING_VALUES))
-                .isEqualTo(IOUtils.toString(expectedSBD.getInputStream(), StandardCharsets.UTF_8));
+                .isEqualTo(expected);
 
         return standardBusinessDocument;
     }

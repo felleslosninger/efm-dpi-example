@@ -1,6 +1,8 @@
 dpi:
     client:
         initialBufferSize: 100000
+        certificate:
+            mode: SELF_SIGNED
         keystore:
             alias: c1
             lockProvider: false

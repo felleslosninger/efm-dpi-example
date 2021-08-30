@@ -2,6 +2,8 @@ dpi:
     client:
         type: file
         schema: offline
+        certificate:
+            mode: TEST
         keystore:
             alias: ''
             lockProvider: false
@@ -12,7 +14,6 @@ dpi:
         oidc:
             enable: true
             url: 'https://ver1.maskinporten.no/token'
-            jwkUrl: 'https://ver1.maskinporten.no/jwk'
             audience: 'https://ver1.maskinporten.no/'
             send:
                 clientIdPrefix: 'MOVE_IP_'

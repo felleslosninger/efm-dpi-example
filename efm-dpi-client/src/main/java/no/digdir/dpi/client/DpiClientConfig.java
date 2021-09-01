@@ -1,9 +1,5 @@
 package no.digdir.dpi.client;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.util.Base64;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -14,12 +10,9 @@ import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.Validator;
-import no.difi.move.common.cert.KeystoreProvider;
-import no.difi.move.common.cert.KeystoreProviderException;
 import no.difi.move.common.cert.validator.BusinessCertificateValidator;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;
-import no.digdir.dpi.client.domain.BusinessCertificate;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.domain.messagetypes.MessageType;
 import no.digdir.dpi.client.internal.*;
@@ -48,8 +41,7 @@ import reactor.netty.tcp.TcpClient;
 import java.net.URI;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.security.*;
-import java.security.cert.Certificate;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -177,11 +169,7 @@ public class DpiClientConfig {
     @Bean
     @SneakyThrows
     public CreateJWT createJWT(KeyPair keyPair) {
-        return new CreateJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256)
-                        .x509CertChain(Collections.singletonList(Base64.encode(keyPair.getBusinessCertificate().getX509Certificate().getEncoded())))
-                        .build(),
-                new RSASSASigner(keyPair.getBusinessCertificatePrivateKey()));
+        return new CreateJWT(keyPair);
     }
 
     @Bean
@@ -265,64 +253,12 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public KeyPair keyPair(BusinessCertificateValidator businessCertificateValidator) throws KeystoreProviderException {
-        KeyStore keyStore = KeystoreProvider.loadKeyStore(properties.getKeystore());
-
-        return KeyPair.builder()
-                .alias(properties.getKeystore().getAlias())
-                .businessCertificate(getValidatedBusinessCertificate(keyStore, businessCertificateValidator))
-                .businessCertificateChain(getBusinessCertificateChain(keyStore))
-                .businessCertificatePrivateKey(getBusinessCertificatePrivateKey(keyStore))
-                .build();
-    }
-
-    private BusinessCertificate getValidatedBusinessCertificate(KeyStore keyStore, BusinessCertificateValidator businessCertificateValidator) {
-        BusinessCertificate certificate = getBusinessCertificate(keyStore);
-        businessCertificateValidator.validate(certificate.getX509Certificate());
-        return certificate;
-    }
-
-    private BusinessCertificate getBusinessCertificate(KeyStore keyStore) {
-        return BusinessCertificate.fraKeyStore(keyStore, properties.getKeystore().getAlias());
-    }
-
-    private Certificate[] getBusinessCertificateChain(KeyStore keyStore) {
-        try {
-            return keyStore.getCertificateChain(properties.getKeystore().getAlias());
-        } catch (KeyStoreException e) {
-            throw new Exception("Kunne ikke hente sertifikatkjede fra KeyStore. Er KeyStore initialisiert?", e);
-        }
-    }
-
-    public PrivateKey getBusinessCertificatePrivateKey(KeyStore keyStore) {
-        try {
-
-            Key key = keyStore.getKey(properties.getKeystore().getAlias(), properties.getKeystore().getPassword().toCharArray());
-            if (!(key instanceof PrivateKey)) {
-                throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Forventet å få en PrivateKey, fikk " + key.getClass().getCanonicalName());
-            }
-            return (PrivateKey) key;
-        } catch (KeyStoreException e) {
-            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Er KeyStore initialisiert?", e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Verifiser at nøkkelen er støttet på plattformen", e);
-        } catch (UnrecoverableKeyException e) {
-            throw new Exception("Kunne ikke hente privatnøkkel fra KeyStore. Sjekk at passordet er riktig.", e);
-        }
+    public KeyPair keyPair(BusinessCertificateValidator businessCertificateValidator) {
+        return new KeyPairProvider(businessCertificateValidator, properties.getKeystore()).getKeyPair();
     }
 
     @Bean
     public FileExtensionMapper fileExtensionMapper() {
         return new FileExtensionMapper();
-    }
-
-    private static class Exception extends RuntimeException {
-        public Exception(String message) {
-            super(message);
-        }
-
-        public Exception(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 }

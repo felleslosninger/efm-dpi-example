@@ -1,6 +1,7 @@
 package no.digdir.dpi.client;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.Payload;
 import lombok.SneakyThrows;
 import net.javacrumbs.jsonunit.core.Option;
@@ -14,13 +15,13 @@ import no.digdir.dpi.client.domain.messagetypes.Digital;
 import no.digdir.dpi.client.domain.messagetypes.Utskrift;
 import no.digdir.dpi.client.domain.sbd.*;
 import no.digdir.dpi.client.internal.CreateInstanceIdentifier;
+import no.digdir.dpi.client.internal.DpiMapper;
 import no.digdir.dpi.client.internal.UnpackJWT;
 import no.digdir.dpi.client.internal.UnpackStandardBusinessDocument;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockserver.client.MockServerClient;
@@ -89,6 +90,15 @@ class DpiClientTest {
     private UnpackJWT unpackJWT;
 
     @Autowired
+    private CreateReceiptJWT createReceiptJWT;
+
+    @Autowired
+    private DpiMapper dpiMapper;
+
+    @Autowired
+    private CreateLeveringskvittering createLeveringskvittering;
+
+    @Autowired
     private UnpackStandardBusinessDocument unpackStandardBusinessDocument;
 
     @MockBean
@@ -111,9 +121,6 @@ class DpiClientTest {
 
     @Value("classpath:/message_statuses.json")
     private Resource messageStatusesResource;
-
-    @Value("classpath:/messages.json")
-    private Resource messagesResource;
 
     @BeforeEach
     public void beforeEach(MockServerClient client) {
@@ -261,19 +268,20 @@ class DpiClientTest {
                 .withPath(String.format("/dpi/statuses/%s", uuid)));
     }
 
-    /*
-    TODO: Forretningsmeling must contain complete SBD
-     */
     @Test
-    @Disabled
+    @SneakyThrows
     void testGetMessages(MockServerClient client) {
+        String forretningsmelding = createReceiptJWT.createReceiptJWT(dpiMapper.readStandardBusinessDocument(digitalReadyForSendSbd), createLeveringskvittering);
         client.when(request()
                         .withMethod("GET")
                         .withPath("/dpi/messages"))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody(ResourceUtils.toByteArray(messagesResource))
+                        .withBody(new ObjectMapper().writeValueAsString(new Message()
+                                .setForettningsmelding(forretningsmelding)
+                                .setDownloadurl(URI.create("http://localhost:8900/dpi/downloadmessage/a9bc8498-13b1-4cef-9cf9-4873a03b484d"))
+                        ))
                 );
 
         StepVerifier.create(dpiClient.getMessages())
@@ -282,7 +290,7 @@ class DpiClientTest {
                 .consumeRecordedWith(elements -> assertThat(elements).hasSize(1)
                         .first()
                         .satisfies(receivedMessage -> {
-                            assertThat(receivedMessage.getMessage().getForettningsmelding()).isEqualTo("{ \"key\": \"value\" }");
+                            assertThat(receivedMessage.getMessage().getForettningsmelding()).isEqualTo(forretningsmelding);
                             assertThat(receivedMessage.getMessage().getDownloadurl()).isEqualTo(URI.create("http://localhost:8900/dpi/downloadmessage/a9bc8498-13b1-4cef-9cf9-4873a03b484d"));
                         })
                 )
@@ -330,7 +338,6 @@ class DpiClientTest {
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
-                        .withBody(ResourceUtils.toByteArray(messagesResource))
                 );
 
         dpiClient.markAsRead(uuid);

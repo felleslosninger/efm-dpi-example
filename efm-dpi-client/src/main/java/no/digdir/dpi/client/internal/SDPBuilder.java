@@ -67,19 +67,13 @@ public class SDPBuilder {
     }
 
     private SDPMottaker getMottaker(Shipment shipment) {
-        return SDPMottaker.builder()
-                .withPerson(getPerson(shipment))
-                .build();
-    }
-
-    private SDPPerson getPerson(Shipment shipment) {
         return shipment.getBusinessMessage(PersonmottakerHolder.class)
                 .map(PersonmottakerHolder::getMottaker)
                 .map(mottaker ->
-                        SDPPerson.builder()
-                                .withPostkasseadresse(mottaker.getPostkasseadresse())
-                                .build()
-                )
+                        SDPMottaker.builder()
+                                .withPerson(SDPPerson.builder()
+                                        .withPostkasseadresse(mottaker.getPostkasseadresse())
+                                        .build()).build())
                 .orElse(null);
     }
 

@@ -28,7 +28,7 @@ public class BusinessCertificate {
         }
     }
 
-    public static BusinessCertificate fraByteArray(byte[] certificate) {
+    public static BusinessCertificate of(byte[] certificate) {
         try {
             return createBusinessCertificate(certificate);
         } catch (CertificateException e) {
@@ -36,7 +36,7 @@ public class BusinessCertificate {
         }
     }
 
-    public static BusinessCertificate fraKeyStore(KeyStore keyStore, String alias) {
+    public static BusinessCertificate getFromKeyStore(KeyStore keyStore, String alias) {
         java.security.cert.Certificate certificate;
         try {
             certificate = keyStore.getCertificate(alias);

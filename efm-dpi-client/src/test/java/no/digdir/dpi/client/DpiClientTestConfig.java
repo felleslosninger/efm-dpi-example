@@ -1,7 +1,11 @@
 package no.digdir.dpi.client;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import no.difi.move.common.cert.KeystoreHelper;
+import no.difi.move.common.cert.validator.BusinessCertificateValidator;
+import no.digdir.dpi.client.domain.KeyPair;
+import no.digdir.dpi.client.internal.*;
 import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
 import org.bouncycastle.cms.jcajce.JceKeyTransRecipient;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -54,5 +58,24 @@ public class DpiClientTestConfig {
     @Bean
     public InMemoryDocumentStorage inMemoryDocumentStorage() {
         return new InMemoryDocumentStorage();
+    }
+
+    @Bean
+    public KeyPair keyPairServer(BusinessCertificateValidator businessCertificateValidator) {
+        return new KeyPairProvider(businessCertificateValidator, properties.getKeystore()).getKeyPair();
+    }
+
+    @Bean
+    @SneakyThrows
+    public CreateJWT createJWTServer(KeyPair keyPairServer) {
+        return new CreateJWT(keyPairServer);
+    }
+
+    @Bean
+    public CreateReceiptJWT createReceiptJWT(StandBusinessDocumentJsonFinalizer standBusinessDocumentJsonFinalizer,
+                                             CreateJWT createJWTServer,
+                                             CreateInstanceIdentifier createInstanceIdentifier,
+                                             Clock clock) {
+        return new CreateReceiptJWT(new CreateStandardBusinessDocumentJWT(standBusinessDocumentJsonFinalizer, createJWTServer), createInstanceIdentifier, clock);
     }
 }

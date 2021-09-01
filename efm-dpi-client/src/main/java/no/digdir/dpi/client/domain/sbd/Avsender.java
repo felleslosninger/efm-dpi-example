@@ -8,5 +8,9 @@ public class Avsender {
 
     private Identifikator virksomhetsidentifikator;
     private String avsenderidentifikator;
+
+    /**
+     * Invoice reference
+     */
     private String fakturaReferanse;
 }

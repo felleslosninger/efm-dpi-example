@@ -33,7 +33,7 @@ public class ShipmentFactory {
 
     private BusinessCertificate getReceiverCertificate(DpiTestInput input) {
         try (InputStream inputStream = input.getReceiverCertificate().getInputStream()) {
-            return BusinessCertificate.fraByteArray(IOUtils.toByteArray(inputStream));
+            return BusinessCertificate.of(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
             throw new Exception("Couldn't get receiver certificate!", e);
         }

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
@@ -42,9 +43,9 @@ public class Corner2ClientImpl implements Corner2Client {
     }
 
     @Override
-    public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
+    public Flux<MessageStatus> getMessageStatuses(UUID messageId) {
         return webClient.get()
-                .uri("/statuses/{identifier}", identifier)
+                .uri("/statuses/{identifier}", messageId)
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
@@ -52,13 +53,21 @@ public class Corner2ClientImpl implements Corner2Client {
     }
 
     @Override
-    public Flux<Message> getMessages() {
+    public Flux<Message> getMessages(String avsenderidentifikator) {
         return webClient.get()
-                .uri("/messages")
+                .uri(uriBuilder -> getAvsenderidentifikator(uriBuilder, avsenderidentifikator))
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(Message.class);
+    }
+
+    private URI getAvsenderidentifikator(UriBuilder uriBuilder, String avsenderidentifikator) {
+        uriBuilder.path("/messages");
+        if (avsenderidentifikator != null) {
+            uriBuilder.queryParam("avsenderidentifikator", avsenderidentifikator);
+        }
+        return uriBuilder.build();
     }
 
     @Override
@@ -85,9 +94,9 @@ public class Corner2ClientImpl implements Corner2Client {
     }
 
     @Override
-    public void markAsRead(UUID identifier) {
+    public void markAsRead(UUID messageId) {
         webClient.post()
-                .uri("/setmessageread/{identifier}", identifier)
+                .uri("/setmessageread/{identifier}", messageId)
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)

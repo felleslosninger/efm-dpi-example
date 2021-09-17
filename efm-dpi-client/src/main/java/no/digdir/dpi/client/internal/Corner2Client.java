@@ -12,11 +12,11 @@ import java.util.UUID;
 public interface Corner2Client {
     void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice);
 
-    Flux<MessageStatus> getMessageStatuses(UUID identifier);
+    Flux<MessageStatus> getMessageStatuses(UUID messageId);
 
-    Flux<Message> getMessages();
+    Flux<Message> getMessages(String avsenderidentifikator);
 
     CmsEncryptedAsice getCmsEncryptedAsice(URI downloadurl) throws DpiException;
 
-    void markAsRead(UUID identifier);
+    void markAsRead(UUID messageId);
 }

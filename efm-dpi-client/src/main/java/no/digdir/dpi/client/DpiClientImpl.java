@@ -41,13 +41,13 @@ public class DpiClientImpl implements DpiClient {
     }
 
     @Override
-    public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
-        return corner2Client.getMessageStatuses(identifier);
+    public Flux<MessageStatus> getMessageStatuses(UUID messageId) {
+        return corner2Client.getMessageStatuses(messageId);
     }
 
     @Override
-    public Flux<ReceivedMessage> getMessages() {
-        return corner2Client.getMessages()
+    public Flux<ReceivedMessage> getMessages(String avsenderidentifikator) {
+        return corner2Client.getMessages(avsenderidentifikator)
                 .map(messageUnwrapper::unwrap);
     }
 
@@ -57,7 +57,7 @@ public class DpiClientImpl implements DpiClient {
     }
 
     @Override
-    public void markAsRead(UUID identifier) {
-        corner2Client.markAsRead(identifier);
+    public void markAsRead(UUID messageId) {
+        corner2Client.markAsRead(messageId);
     }
 }

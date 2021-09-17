@@ -7,6 +7,6 @@ import java.net.URI;
 @Data
 public class Message {
 
-    private String forettningsmelding;
+    private String forretningsmelding;
     private URI downloadurl;
 }

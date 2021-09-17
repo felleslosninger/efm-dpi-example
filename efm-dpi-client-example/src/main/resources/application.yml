@@ -11,6 +11,10 @@ dpi:
             path: ''
             type: jks
         uri: 'http://localhost:8081/dpi'
+        timeout:
+            connect: 3000
+            read: 10000
+            write: 60000
         oidc:
             enable: true
             url: 'https://ver1.maskinporten.no/token'

@@ -57,12 +57,12 @@ public class LocalDirectoryCorner2Client implements Corner2Client {
     }
 
     @Override
-    public Flux<MessageStatus> getMessageStatuses(UUID identifier) {
+    public Flux<MessageStatus> getMessageStatuses(UUID messageId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Flux<Message> getMessages() {
+    public Flux<Message> getMessages(String avsenderidentifikator) {
         throw new UnsupportedOperationException();
     }
 
@@ -72,7 +72,7 @@ public class LocalDirectoryCorner2Client implements Corner2Client {
     }
 
     @Override
-    public void markAsRead(UUID identifier) {
+    public void markAsRead(UUID messageId) {
         throw new UnsupportedOperationException();
     }
 

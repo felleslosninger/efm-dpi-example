@@ -132,9 +132,6 @@ class DpiClientTest {
                         .withContentType(MediaType.APPLICATION_JSON)
                         .withBody("{ \"access_token\" : \"DummyMaskinportenToken\" }")
                 );
-
-        given(createInstanceIdentifier.createInstanceIdentifier())
-                .willReturn("ff88849c-e281-4809-8555-7cd54952b916");
     }
 
     @AfterEach
@@ -213,6 +210,7 @@ class DpiClientTest {
                 .setReceiverOrganizationIdentifier(new PartnerIdentification()
                         .setAuthority(Authority.ISO6523_ACTORID_UPIS)
                         .setValue("0192:123456789"))
+                .setMessageId("ff88849c-e281-4809-8555-7cd54952b916")
                 .setConversationId("37efbd4c-413d-4e2c-bbc5-257ef4a65a45")
                 .setExpectedResponseDateTime(OffsetDateTime.parse("2021-04-21T15:29:58.753+02:00"))
                 .setBusinessMessage(businessMessage)
@@ -271,26 +269,32 @@ class DpiClientTest {
     @Test
     @SneakyThrows
     void testGetMessages(MockServerClient client) {
+        given(createInstanceIdentifier.createInstanceIdentifier())
+                .willReturn("ff88849c-e281-4809-8555-7cd54952b916");
+
+        String avsenderidentifikator = "123";
         String forretningsmelding = createReceiptJWT.createReceiptJWT(dpiMapper.readStandardBusinessDocument(digitalReadyForSendSbd), createLeveringskvittering);
         client.when(request()
                         .withMethod("GET")
-                        .withPath("/dpi/messages"))
+                        .withPath("/dpi/messages")
+                        .withQueryStringParameter("avsenderidentifikator", avsenderidentifikator)
+                )
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
                         .withBody(new ObjectMapper().writeValueAsString(new Message()
-                                .setForettningsmelding(forretningsmelding)
+                                .setForretningsmelding(forretningsmelding)
                                 .setDownloadurl(URI.create("http://localhost:8900/dpi/downloadmessage/a9bc8498-13b1-4cef-9cf9-4873a03b484d"))
                         ))
                 );
 
-        StepVerifier.create(dpiClient.getMessages())
+        StepVerifier.create(dpiClient.getMessages(avsenderidentifikator))
                 .recordWith(ArrayList::new)
                 .thenConsumeWhile(x -> true)
                 .consumeRecordedWith(elements -> assertThat(elements).hasSize(1)
                         .first()
                         .satisfies(receivedMessage -> {
-                            assertThat(receivedMessage.getMessage().getForettningsmelding()).isEqualTo(forretningsmelding);
+                            assertThat(receivedMessage.getMessage().getForretningsmelding()).isEqualTo(forretningsmelding);
                             assertThat(receivedMessage.getMessage().getDownloadurl()).isEqualTo(URI.create("http://localhost:8900/dpi/downloadmessage/a9bc8498-13b1-4cef-9cf9-4873a03b484d"));
                         })
                 )
@@ -298,7 +302,8 @@ class DpiClientTest {
 
         client.verify(request()
                 .withMethod("GET")
-                .withPath("/dpi/messages"));
+                .withPath("/dpi/messages")
+                .withQueryStringParameter("avsenderidentifikator", avsenderidentifikator));
     }
 
     @Test

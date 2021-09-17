@@ -9,7 +9,7 @@ import java.util.List;
 
 @Value
 @Builder
-public class DpiExampleInput {
+public class DpiSendInput {
 
     @NonNull Resource standardBusinessDocument;
     @NonNull Resource mainDocument;

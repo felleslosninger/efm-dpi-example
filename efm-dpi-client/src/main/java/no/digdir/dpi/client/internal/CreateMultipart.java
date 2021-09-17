@@ -17,9 +17,9 @@ public class CreateMultipart {
     @SneakyThrows
     public MultiValueMap<String, HttpEntity<?>> createMultipart(String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("sbd", jwt, APPLICATION_JWT)
+        builder.part("forretningsmelding", jwt, APPLICATION_JWT)
                 .filename("sbd.jwt");
-        builder.part("cms", cmsEncryptedAsice.getResource(), APPLICATION_CMS)
+        builder.part("dokumentpakke", cmsEncryptedAsice.getResource(), APPLICATION_CMS)
                 .filename("asic.cms");
         return builder.build();
     }

@@ -28,7 +28,7 @@ public class ShipmentFactory {
     private final FileExtensionMapper fileExtensionMapper;
     private final DpiMapper dpiMapper;
 
-    public Shipment getShipment(DpiExampleInput input) {
+    public Shipment getShipment(DpiSendInput input) {
         StandardBusinessDocument sbd = getStandardBusinessDocument(input);
         return new Shipment()
                 .setSenderOrganizationIdentifier(StandardBusinessDocumentUtils.getFirstSenderIdentifier(sbd)
@@ -52,11 +52,11 @@ public class ShipmentFactory {
     }
 
     @SneakyThrows
-    private StandardBusinessDocument getStandardBusinessDocument(DpiExampleInput input) {
+    private StandardBusinessDocument getStandardBusinessDocument(DpiSendInput input) {
         return dpiMapper.readStandardBusinessDocument(input.getStandardBusinessDocument());
     }
 
-    private BusinessCertificate getReceiverCertificate(DpiExampleInput input) {
+    private BusinessCertificate getReceiverCertificate(DpiSendInput input) {
         try (InputStream inputStream = input.getReceiverCertificate().getInputStream()) {
             return BusinessCertificate.of(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
@@ -64,7 +64,7 @@ public class ShipmentFactory {
         }
     }
 
-    private Parcel getParcel(DpiExampleInput input) {
+    private Parcel getParcel(DpiSendInput input) {
         return new Parcel()
                 .setMainDocument(getDocument(input.getMainDocument()))
                 .setAttachments(input.getAttachments()

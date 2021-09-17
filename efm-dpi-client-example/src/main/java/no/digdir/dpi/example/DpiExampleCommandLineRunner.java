@@ -18,15 +18,13 @@ public class DpiExampleCommandLineRunner implements CommandLineRunner {
                     .desc("The PEM business certificate of the receiving organisation.")
                     .build());
 
-    private final CommandLineConverter commandLineConverter;
     private final DpiExample dpiExample;
 
     @Override
     public void run(String... args) {
         try {
             CommandLine commandLine = getCommandLine(args);
-            DpiExampleInput input = commandLineConverter.toDpiExampleInput(commandLine);
-            dpiExample.run(input);
+            dpiExample.run(commandLine);
         } catch (ParseException e) {
             log.error(e.getLocalizedMessage());
             new HelpFormatter().printHelp("dpiexample", options);

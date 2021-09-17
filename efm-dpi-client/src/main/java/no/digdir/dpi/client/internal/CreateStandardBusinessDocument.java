@@ -14,7 +14,6 @@ import java.time.OffsetDateTime;
 @RequiredArgsConstructor
 public class CreateStandardBusinessDocument {
 
-    private final CreateInstanceIdentifier createInstanceIdentifier;
     private final Clock clock;
 
     public StandardBusinessDocument createStandardBusinessDocument(Shipment shipment) {
@@ -31,7 +30,7 @@ public class CreateStandardBusinessDocument {
                 .addSender(new Partner().setIdentifier(shipment.getSenderOrganizationIdentifier()))
                 .addReceiver(new Partner().setIdentifier(shipment.getReceiverOrganizationIdentifier()))
                 .setDocumentIdentification(new DocumentIdentification()
-                        .setInstanceIdentifier(createInstanceIdentifier.createInstanceIdentifier())
+                        .setInstanceIdentifier(shipment.getMessageId())
                         .setStandard(outgoingMessageType.getStandard())
                         .setType(outgoingMessageType.getType())
                         .setTypeVersion("1.0")

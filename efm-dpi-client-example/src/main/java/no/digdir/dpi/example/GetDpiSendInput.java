@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class CommandLineConverter {
+public class GetDpiSendInput {
 
-    public DpiExampleInput toDpiExampleInput(CommandLine commandLine) {
+    public DpiSendInput getDpiSendInput(CommandLine commandLine) {
         Resources resources = new Resources(commandLine.getArgList());
 
-        return DpiExampleInput.builder()
+        return DpiSendInput.builder()
                 .standardBusinessDocument(resources.getStandardBusinessDocument())
                 .mainDocument(resources.getMainDocument())
                 .attachments(resources.getAttachments())
@@ -31,8 +31,11 @@ public class CommandLineConverter {
         @NonNull List<Resource> resourceList;
 
         public Resources(@NonNull List<String> paths) {
-            Assert.isTrue(paths.size() >= 2, "Must atl");
-            this.resourceList = paths.stream().map(FileSystemResource::new).collect(Collectors.toList());
+            Assert.isTrue(paths.size() >= 3, "Expected at least two files");
+            this.resourceList = paths.stream()
+                    .skip(1)
+                    .map(FileSystemResource::new)
+                    .collect(Collectors.toList());
         }
 
         Resource getStandardBusinessDocument() {

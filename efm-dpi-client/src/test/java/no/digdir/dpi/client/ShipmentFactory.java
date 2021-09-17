@@ -23,6 +23,7 @@ public class ShipmentFactory {
         return new Shipment()
                 .setSenderOrganizationIdentifier(input.getSenderOrganizationIdentifier())
                 .setReceiverOrganizationIdentifier(input.getReceiverOrganizationIdentifier())
+                .setMessageId(input.getMessageId())
                 .setConversationId(input.getConversationId())
                 .setExpectedResponseDateTime(input.getExpectedResponseDateTime())
                 .setBusinessMessage(input.getBusinessMessage())

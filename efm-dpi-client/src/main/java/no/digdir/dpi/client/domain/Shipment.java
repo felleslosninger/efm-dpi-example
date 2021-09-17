@@ -13,6 +13,7 @@ public class Shipment {
 
     private PartnerIdentification senderOrganizationIdentifier;
     private PartnerIdentification receiverOrganizationIdentifier;
+    private String messageId;
     private String conversationId;
     private OffsetDateTime expectedResponseDateTime;
     private BusinessMessage businessMessage;

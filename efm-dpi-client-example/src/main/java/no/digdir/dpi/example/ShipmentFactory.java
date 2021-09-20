@@ -11,6 +11,7 @@ import no.digdir.dpi.client.domain.Document;
 import no.digdir.dpi.client.domain.Parcel;
 import no.digdir.dpi.client.domain.Shipment;
 import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
+import no.digdir.dpi.client.internal.CreateInstanceIdentifier;
 import no.digdir.dpi.client.internal.DpiMapper;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ShipmentFactory {
 
+    private final CreateInstanceIdentifier createInstanceIdentifier;
     private final FileExtensionMapper fileExtensionMapper;
     private final DpiMapper dpiMapper;
 
@@ -37,6 +39,7 @@ public class ShipmentFactory {
                 .setReceiverOrganizationIdentifier(StandardBusinessDocumentUtils.getFirstReceiverIdentifier(sbd)
                         .orElseThrow(() -> new IllegalArgumentException("Missing receiver identifier!"))
                 )
+                .setMessageId(createInstanceIdentifier.createInstanceIdentifier())
                 .setConversationId(StandardBusinessDocumentUtils.getScope(sbd, ScopeType.CONVERSATION_ID)
                         .flatMap(p -> Optional.ofNullable(p.getInstanceIdentifier()))
                         .orElseThrow(() -> new IllegalArgumentException("Missing conversationId!"))

@@ -1,6 +1,8 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.RequiredArgsConstructor;
+import no.difi.move.common.io.InMemoryWithTempFileFallbackResource;
+import no.difi.move.common.io.InMemoryWithTempFileFallbackResourceFactory;
 import no.digdir.dpi.client.Blame;
 import no.digdir.dpi.client.DpiException;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;

@@ -41,6 +41,10 @@
             <artifactId>domain</artifactId>
         </dependency>
         <dependency>
+            <groupId>no.difi.move-common</groupId>
+            <artifactId>io</artifactId>
+        </dependency>
+        <dependency>
             <groupId>no.difi.commons</groupId>
             <artifactId>commons-asic</artifactId>
         </dependency>

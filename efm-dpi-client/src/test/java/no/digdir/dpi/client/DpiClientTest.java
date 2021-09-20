@@ -9,6 +9,7 @@ import no.difi.meldingsutveksling.domain.sbdh.Authority;
 import no.difi.meldingsutveksling.domain.sbdh.PartnerIdentification;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocument;
 import no.difi.meldingsutveksling.domain.sbdh.StandardBusinessDocumentUtils;
+import no.difi.move.common.io.ResourceUtils;
 import no.digdir.dpi.client.domain.*;
 import no.digdir.dpi.client.domain.messagetypes.BusinessMessage;
 import no.digdir.dpi.client.domain.messagetypes.Digital;

@@ -1,7 +1,7 @@
 package no.digdir.dpi.client.domain;
 
 import lombok.Value;
-import no.digdir.dpi.client.internal.InMemoryWithTempFileFallbackResource;
+import no.difi.move.common.io.InMemoryWithTempFileFallbackResource;
 
 @Value
 public class CmsEncryptedAsice implements AutoCloseable {

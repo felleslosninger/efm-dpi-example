@@ -1,6 +1,9 @@
 package no.digdir.dpi.client;
 
-import no.digdir.dpi.client.domain.*;
+import no.digdir.dpi.client.domain.CmsEncryptedAsice;
+import no.digdir.dpi.client.domain.MessageStatus;
+import no.digdir.dpi.client.domain.ReceivedMessage;
+import no.digdir.dpi.client.domain.Shipment;
 import reactor.core.publisher.Flux;
 
 import java.net.URI;

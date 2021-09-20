@@ -231,7 +231,7 @@ class DpiClientTest {
 
         assertThatThrownBy(() -> send(client, input, httpResponse))
                 .isInstanceOf(DpiException.class)
-                .hasMessage("400 Bad Request from POST http://localhost:8900/dpi/send")
+                .hasMessage(String.format("400 Bad Request from POST http://localhost:8900/dpi/send:%n{}"))
                 .hasCauseInstanceOf(WebClientResponseException.BadRequest.class);
     }
 
@@ -254,10 +254,10 @@ class DpiClientTest {
                 .consumeRecordedWith(elements -> assertThat(elements)
                         .containsExactly(
                                 new MessageStatus()
-                                        .setStatus(ReceiptStatus.SENDT)
+                                        .setStatus(ReceiptStatus.OPPRETTET)
                                         .setTimestamp(OffsetDateTime.parse("2021-06-29T05:49:47Z")),
                                 new MessageStatus()
-                                        .setStatus(ReceiptStatus.MOTTATT)
+                                        .setStatus(ReceiptStatus.SENDT)
                                         .setTimestamp(OffsetDateTime.parse("2021-06-29T07:12:40Z"))
                         ))
                 .verifyComplete();

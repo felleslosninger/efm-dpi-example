@@ -9,7 +9,10 @@ public class DpiClientErrorHandlerImpl implements DpiClientErrorHandler {
     @Override
     public Mono<DpiException> apply(ClientResponse response) {
         return response.createException()
-                .flatMap(ex -> Mono.error(new DpiException(ex.getMessage(), ex, getBlame(response))));
+                .flatMap(ex -> Mono.error(new DpiException(
+                        String.format("%s:%n%s", ex.getMessage(), ex.getResponseBodyAsString()),
+                        ex,
+                        getBlame(response))));
     }
 
     private Blame getBlame(ClientResponse response) {

@@ -12,5 +12,5 @@ public enum ReceiptStatus {
      */
     SENDT,
 
-    FEIL
+    FEILET
 }

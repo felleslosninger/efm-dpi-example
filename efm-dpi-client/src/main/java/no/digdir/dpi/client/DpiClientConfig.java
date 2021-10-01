@@ -257,13 +257,8 @@ public class DpiClientConfig {
     }
 
     @Bean
-    public KeystoreHelper keystoreHelper() {
-        return new KeystoreHelper(properties.getKeystore());
-    }
-
-    @Bean
-    public SignatureHelper signatureHelper(KeystoreHelper keystoreHelper) {
-        return keystoreHelper.getSignatureHelper();
+    public SignatureHelper signatureHelper() {
+        return new KeystoreHelper(properties.getKeystore()).getSignatureHelper();
     }
 
     @Bean

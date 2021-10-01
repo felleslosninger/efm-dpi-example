@@ -68,16 +68,12 @@ public class DpiClientConfig {
 
     @Bean
     public DpiClient dpiClient(CreateCmsEncryptedAsice createCmsEncryptedAsice,
-                               CreateMaskinportenToken createMaskinportenToken,
-                               CreateStandardBusinessDocument createStandardBusinessDocument,
-                               CreateStandardBusinessDocumentJWT createStandardBusinessDocumentJWT,
+                               CreateSendMessageInput createSendMessageInput,
                                Corner2Client corner2Client,
                                MessageUnwrapper messageUnwrapper) {
         return new DpiClientImpl(
                 createCmsEncryptedAsice,
-                createMaskinportenToken,
-                createStandardBusinessDocument,
-                createStandardBusinessDocumentJWT,
+                createSendMessageInput,
                 corner2Client,
                 messageUnwrapper);
     }

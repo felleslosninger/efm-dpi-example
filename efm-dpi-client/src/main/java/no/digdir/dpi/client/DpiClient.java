@@ -1,9 +1,6 @@
 package no.digdir.dpi.client;
 
-import no.digdir.dpi.client.domain.CmsEncryptedAsice;
-import no.digdir.dpi.client.domain.MessageStatus;
-import no.digdir.dpi.client.domain.ReceivedMessage;
-import no.digdir.dpi.client.domain.Shipment;
+import no.digdir.dpi.client.domain.*;
 import reactor.core.publisher.Flux;
 
 import java.net.URI;
@@ -14,7 +11,7 @@ public interface DpiClient {
 
     Flux<MessageStatus> getMessageStatuses(UUID messageId) throws DpiException;
 
-    Flux<ReceivedMessage> getMessages(String avsenderidentifikator) throws DpiException;
+    Flux<ReceivedMessage> getMessages(GetMessagesInput input) throws DpiException;
 
     CmsEncryptedAsice getCmsEncryptedAsice(URI downloadurl) throws DpiException;
 

@@ -6,20 +6,22 @@ import no.difi.move.common.io.InMemoryWithTempFileFallbackResourceFactory;
 import no.digdir.dpi.client.Blame;
 import no.digdir.dpi.client.DpiException;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;
+import no.digdir.dpi.client.domain.GetMessagesInput;
 import no.digdir.dpi.client.domain.Message;
 import no.digdir.dpi.client.domain.MessageStatus;
+import no.digdir.dpi.client.internal.domain.SendMessageInput;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriBuilder;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -32,12 +34,16 @@ public class Corner2ClientImpl implements Corner2Client {
     private final InMemoryWithTempFileFallbackResourceFactory resourceFactory;
 
     @Override
-    public void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
+    public void sendMessage(SendMessageInput input) {
         webClient.post()
-                .uri("/send")
-                .headers(h -> h.setBearerAuth(maskinportentoken))
+                .uri(uriBuilder -> {
+                    uriBuilder.path("/messages/out");
+                    Optional.ofNullable(input.getChannel()).ifPresent(p -> uriBuilder.queryParam("kanal", p));
+                    return uriBuilder.build();
+                })
+                .headers(h -> h.setBearerAuth(input.getMaskinportentoken()))
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(jwt, cmsEncryptedAsice)))
+                .body(BodyInserters.fromMultipartData(createMultipart.createMultipart(input)))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .toBodilessEntity()
@@ -47,7 +53,7 @@ public class Corner2ClientImpl implements Corner2Client {
     @Override
     public Flux<MessageStatus> getMessageStatuses(UUID messageId) {
         return webClient.get()
-                .uri("/statuses/{identifier}", messageId)
+                .uri("/messages/out/{messageId}/statuses", messageId)
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
@@ -55,21 +61,18 @@ public class Corner2ClientImpl implements Corner2Client {
     }
 
     @Override
-    public Flux<Message> getMessages(String avsenderidentifikator) {
+    public Flux<Message> getMessages(GetMessagesInput input) {
         return webClient.get()
-                .uri(uriBuilder -> getAvsenderidentifikator(uriBuilder, avsenderidentifikator))
+                .uri(uriBuilder -> {
+                    uriBuilder.path("/messages/in");
+                    Optional.ofNullable(input.getSenderId()).ifPresent(p -> uriBuilder.queryParam("avsenderidentifikator", p));
+                    Optional.ofNullable(input.getChannel()).ifPresent(p -> uriBuilder.queryParam("kanal", p));
+                    return uriBuilder.build();
+                })
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)
                 .bodyToFlux(Message.class);
-    }
-
-    private URI getAvsenderidentifikator(UriBuilder uriBuilder, String avsenderidentifikator) {
-        uriBuilder.path("/messages");
-        if (avsenderidentifikator != null) {
-            uriBuilder.queryParam("avsenderidentifikator", avsenderidentifikator);
-        }
-        return uriBuilder.build();
     }
 
     @Override
@@ -98,7 +101,7 @@ public class Corner2ClientImpl implements Corner2Client {
     @Override
     public void markAsRead(UUID messageId) {
         webClient.post()
-                .uri("/setmessageread/{identifier}", messageId)
+                .uri("/messages/in/{messageId}/read", messageId)
                 .headers(h -> h.setBearerAuth(createMaskinportenToken.createMaskinportenTokenForReceiving()))
                 .retrieve()
                 .onStatus(HttpStatus::isError, this.dpiClientErrorHandler)

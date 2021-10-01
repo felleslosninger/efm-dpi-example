@@ -231,7 +231,7 @@ class DpiClientTest {
 
         assertThatThrownBy(() -> send(client, input, httpResponse))
                 .isInstanceOf(DpiException.class)
-                .hasMessage(String.format("400 Bad Request from POST http://localhost:8900/dpi/send:%n{}"))
+                .hasMessage(String.format("400 Bad Request from POST http://localhost:8900/dpi/messages/out:%n{}"))
                 .hasCauseInstanceOf(WebClientResponseException.BadRequest.class);
     }
 
@@ -241,7 +241,7 @@ class DpiClientTest {
 
         client.when(request()
                         .withMethod("GET")
-                        .withPath(String.format("/dpi/statuses/%s", uuid)))
+                        .withPath(String.format("/dpi/messages/out/%s/statuses", uuid)))
                 .respond(response()
                         .withStatusCode(200)
                         .withContentType(MediaType.APPLICATION_JSON)
@@ -264,7 +264,7 @@ class DpiClientTest {
 
         client.verify(request()
                 .withMethod("GET")
-                .withPath(String.format("/dpi/statuses/%s", uuid)));
+                .withPath(String.format("/dpi/messages/out/%s/statuses", uuid)));
     }
 
     @Test
@@ -277,7 +277,7 @@ class DpiClientTest {
         String forretningsmelding = createReceiptJWT.createReceiptJWT(dpiMapper.readStandardBusinessDocument(digitalReadyForSendSbd), createLeveringskvittering);
         client.when(request()
                         .withMethod("GET")
-                        .withPath("/dpi/messages")
+                        .withPath("/dpi/messages/in")
                         .withQueryStringParameter("avsenderidentifikator", avsenderidentifikator)
                 )
                 .respond(response()
@@ -289,7 +289,9 @@ class DpiClientTest {
                         ))
                 );
 
-        StepVerifier.create(dpiClient.getMessages(avsenderidentifikator))
+        StepVerifier.create(dpiClient.getMessages(new GetMessagesInput()
+                        .setSenderId(avsenderidentifikator)
+                ))
                 .recordWith(ArrayList::new)
                 .thenConsumeWhile(x -> true)
                 .consumeRecordedWith(elements -> assertThat(elements).hasSize(1)
@@ -303,7 +305,7 @@ class DpiClientTest {
 
         client.verify(request()
                 .withMethod("GET")
-                .withPath("/dpi/messages")
+                .withPath("/dpi/messages/in")
                 .withQueryStringParameter("avsenderidentifikator", avsenderidentifikator));
     }
 
@@ -336,7 +338,7 @@ class DpiClientTest {
     @Test
     void testMarkAsRead(MockServerClient client) {
         UUID uuid = UUID.randomUUID();
-        String path = String.format("/dpi/setmessageread/%s", uuid);
+        String path = String.format("/dpi/messages/in/%s/read", uuid);
 
         client.when(request()
                         .withMethod("POST")
@@ -386,7 +388,7 @@ class DpiClientTest {
     private MimeMultipart send(MockServerClient client, DpiTestInput input, HttpResponse httpResponse) throws MessagingException {
         HttpRequest requestDefinition = request()
                 .withMethod("POST")
-                .withPath("/dpi/send");
+                .withPath("/dpi/messages/out");
 
         client.when(requestDefinition)
                 .respond(httpResponse);

@@ -15,6 +15,7 @@ public class Shipment {
     private PartnerIdentification receiverOrganizationIdentifier;
     private String messageId;
     private String conversationId;
+    private String channel;
     private OffsetDateTime expectedResponseDateTime;
     private BusinessMessage businessMessage;
     private Parcel parcel;

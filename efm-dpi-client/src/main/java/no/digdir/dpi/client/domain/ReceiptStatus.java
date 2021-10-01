@@ -3,14 +3,17 @@ package no.digdir.dpi.client.domain;
 public enum ReceiptStatus {
 
     /*
-     Melding sendt til Hjørne 2
+     Forsendelse er markert som opprettet (men ikke sendt) i avsenders aksesspunkt
      */
     OPPRETTET,
 
     /*
-     Melding sendt til Hjørne 3
+     Forsendelse er markert som sendt OK til mottakers aksesspunkt
      */
     SENDT,
 
+    /*
+              orsendelse er markert som feilet i avsenderes aksesspunkt
+     */
     FEILET
 }

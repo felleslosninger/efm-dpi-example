@@ -1,7 +1,7 @@
 package no.digdir.dpi.client.internal;
 
 import lombok.SneakyThrows;
-import no.digdir.dpi.client.domain.CmsEncryptedAsice;
+import no.digdir.dpi.client.internal.domain.SendMessageInput;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -15,11 +15,11 @@ public class CreateMultipart {
     private static final MediaType APPLICATION_CMS = MediaType.parseMediaType("application/cms");
 
     @SneakyThrows
-    public MultiValueMap<String, HttpEntity<?>> createMultipart(String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
+    public MultiValueMap<String, HttpEntity<?>> createMultipart(SendMessageInput input) {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("forretningsmelding", jwt, APPLICATION_JWT)
+        builder.part("forretningsmelding", input.getJwt(), APPLICATION_JWT)
                 .filename("sbd.jwt");
-        builder.part("dokumentpakke", cmsEncryptedAsice.getResource(), APPLICATION_CMS)
+        builder.part("dokumentpakke", input.getCmsEncryptedAsice().getResource(), APPLICATION_CMS)
                 .filename("asic.cms");
         return builder.build();
     }

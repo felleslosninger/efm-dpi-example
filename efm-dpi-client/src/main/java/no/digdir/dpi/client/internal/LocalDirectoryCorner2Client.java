@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import no.digdir.dpi.client.DpiClientProperties;
 import no.digdir.dpi.client.DpiException;
 import no.digdir.dpi.client.domain.CmsEncryptedAsice;
+import no.digdir.dpi.client.domain.GetMessagesInput;
 import no.digdir.dpi.client.domain.Message;
 import no.digdir.dpi.client.domain.MessageStatus;
+import no.digdir.dpi.client.internal.domain.SendMessageInput;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
@@ -25,10 +27,10 @@ public class LocalDirectoryCorner2Client implements Corner2Client {
     private final DpiClientProperties properties;
 
     @Override
-    public void sendMessage(String maskinportentoken, String jwt, CmsEncryptedAsice cmsEncryptedAsice) {
+    public void sendMessage(SendMessageInput input) {
         String base = UUID.randomUUID().toString();
-        writeJWT(jwt, base);
-        writeCmsEncryptedAsice(base, cmsEncryptedAsice);
+        writeJWT(input.getJwt(), base);
+        writeCmsEncryptedAsice(base, input.getCmsEncryptedAsice());
     }
 
     private void writeJWT(String jwt, String base) {
@@ -62,7 +64,7 @@ public class LocalDirectoryCorner2Client implements Corner2Client {
     }
 
     @Override
-    public Flux<Message> getMessages(String avsenderidentifikator) {
+    public Flux<Message> getMessages(GetMessagesInput input) {
         throw new UnsupportedOperationException();
     }
 

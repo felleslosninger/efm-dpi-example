@@ -3,6 +3,7 @@ package no.digdir.dpi.example;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.dpi.client.DpiClient;
+import no.digdir.dpi.client.domain.GetMessagesInput;
 import org.apache.commons.cli.CommandLine;
 import org.springframework.stereotype.Component;
 
@@ -39,8 +40,10 @@ public class DpiExample {
     }
 
     private void getMessages(CommandLine commandLine) {
-        String avsenderidentifikator = commandLine.getArgList().get(1);
-        dpiClient.getMessages(avsenderidentifikator)
+        String senderId = commandLine.getArgList().get(1);
+        dpiClient.getMessages(new GetMessagesInput()
+                        .setSenderId(senderId)
+                )
                 .subscribe(p -> log.debug("Received message: {}", p), e -> log.error("Get messages failed!", e));
     }
 

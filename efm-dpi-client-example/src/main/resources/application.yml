@@ -1,7 +1,7 @@
 dpi:
     client:
         type: file
-        schema: offline
+        schema: online
         certificate:
             mode: TEST
         keystore:

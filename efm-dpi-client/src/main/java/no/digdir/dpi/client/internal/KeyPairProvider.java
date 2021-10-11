@@ -3,7 +3,6 @@ package no.digdir.dpi.client.internal;
 import lombok.RequiredArgsConstructor;
 import no.difi.move.common.cert.KeystoreProvider;
 import no.difi.move.common.cert.KeystoreProviderException;
-import no.difi.move.common.cert.validator.BusinessCertificateValidator;
 import no.difi.move.common.config.KeystoreProperties;
 import no.digdir.dpi.client.domain.BusinessCertificate;
 import no.digdir.dpi.client.domain.KeyPair;

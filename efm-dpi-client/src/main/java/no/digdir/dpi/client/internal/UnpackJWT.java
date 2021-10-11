@@ -6,7 +6,6 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.X509CertChainUtils;
 import lombok.RequiredArgsConstructor;
-import no.difi.move.common.cert.validator.BusinessCertificateValidator;
 import no.digdir.dpi.client.Blame;
 import no.digdir.dpi.client.DpiException;
 import org.springframework.util.Assert;

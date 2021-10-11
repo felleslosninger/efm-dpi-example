@@ -3,7 +3,6 @@ package no.digdir.dpi.client;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.difi.move.common.cert.KeystoreHelper;
-import no.difi.move.common.cert.validator.BusinessCertificateValidator;
 import no.digdir.dpi.client.domain.KeyPair;
 import no.digdir.dpi.client.internal.*;
 import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;

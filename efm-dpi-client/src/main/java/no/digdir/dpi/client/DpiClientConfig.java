@@ -12,7 +12,6 @@ import net.jimblackler.jsonschemafriend.UrlRewriter;
 import net.jimblackler.jsonschemafriend.Validator;
 import no.difi.asic.SignatureHelper;
 import no.difi.move.common.cert.KeystoreHelper;
-import no.difi.move.common.cert.validator.BusinessCertificateValidator;
 import no.difi.move.common.io.InMemoryWithTempFileFallbackResourceFactory;
 import no.difi.move.common.oauth.JwtTokenClient;
 import no.difi.move.common.oauth.JwtTokenConfig;

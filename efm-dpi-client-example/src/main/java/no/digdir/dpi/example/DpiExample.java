@@ -2,8 +2,8 @@ package no.digdir.dpi.example;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.digdir.dpi.client.DpiClient;
-import no.digdir.dpi.client.domain.GetMessagesInput;
+import no.difi.meldingsutveksling.dpi.client.DpiClient;
+import no.difi.meldingsutveksling.dpi.client.domain.GetMessagesInput;
 import org.apache.commons.cli.CommandLine;
 import org.springframework.stereotype.Component;
 

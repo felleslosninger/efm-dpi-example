@@ -1,15 +1,19 @@
 # efm-dpi-example
 
-Følgende properties må settes:
+The following properties are mandatory:
 
-example.dpi.keystore.path
-example.dpi.keystore.alias
-example.dpi.keystore.password
+dpi.client.type   # Allowed values are: file, web - Default is web
+dpi.client.uri    # For type=web, this uri is the URL to Corner2 API. For type=file this is the directory to store the files.
+dpi.client.keystore.path
+dpi.client.keystore.alias
+dpi.client.keystore.password
 
-Så kan du kjøre DpiExampleApplication med -c (businessCertificate) opsjonen og minst en fil.
-Hvis mer enn en fil spesifisere, så vil den første bli brukt som hoveddokument og de resterende blir vedlegg. 
+Then you can run the DpiExampleApplication with the -c (businessCertificate) option and at least two files.
+The first file is the SBD. The second is interpreted as the main document and the remaining files is attachments.
 
-Eksempel:
+E.g.:
 
--c ./receivercertificate.cer ./maindocument.pdf ./attachment1.pdf ./attachment2.jpg
+-c ./receiverCertificate.cer send ./standardBusinessDocument.sbd ./mainDocument.pdf ./attachment1.pdf ./attachment2.jpg
+
+
 

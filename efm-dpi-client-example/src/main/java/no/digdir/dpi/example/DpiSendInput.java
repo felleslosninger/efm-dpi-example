@@ -1,4 +1,4 @@
-package no.digdir.dpi.client;
+package no.digdir.dpi.example;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -9,11 +9,10 @@ import java.util.List;
 
 @Value
 @Builder
-public class DpiTestInput {
+public class DpiSendInput {
 
     @NonNull Resource standardBusinessDocument;
     @NonNull Resource mainDocument;
     @NonNull List<Resource> attachments;
-    @NonNull String mailbox;
     @NonNull Resource receiverCertificate;
 }

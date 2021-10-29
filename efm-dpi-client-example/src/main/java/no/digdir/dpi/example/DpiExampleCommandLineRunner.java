@@ -11,11 +11,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DpiExampleCommandLineRunner implements CommandLineRunner {
     private final Options options = new Options()
-            .addOption(Option.builder("m")
-                    .longOpt("mailbox")
-                    .hasArg()
-                    .desc("Mailbox")
-                    .build())
             .addOption(Option.builder("c")
                     .longOpt("certificate")
                     .required()
@@ -23,15 +18,13 @@ public class DpiExampleCommandLineRunner implements CommandLineRunner {
                     .desc("The PEM business certificate of the receiving organisation.")
                     .build());
 
-    private final CommandLineConverter commandLineConverter;
     private final DpiExample dpiExample;
 
     @Override
     public void run(String... args) {
         try {
             CommandLine commandLine = getCommandLine(args);
-            DpiExampleInput input = commandLineConverter.toDpiExampleInput(commandLine);
-            dpiExample.run(input);
+            dpiExample.run(commandLine);
         } catch (ParseException e) {
             log.error(e.getLocalizedMessage());
             new HelpFormatter().printHelp("dpiexample", options);

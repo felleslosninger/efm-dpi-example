@@ -1,5 +1,9 @@
 dpi:
     client:
+        type: file
+        schema: online
+        certificate:
+            mode: TEST
         keystore:
             alias: ''
             lockProvider: false
@@ -7,13 +11,20 @@ dpi:
             path: ''
             type: jks
         uri: 'http://localhost:8081/dpi'
+        timeout:
+            connect: 3000
+            read: 10000
+            write: 60000
         oidc:
-            url: 'https://ver2.maskinporten.no/token'
-            audience: 'https://ver2.maskinporten.no/'
-            clientId: 'dpi_test'
+            enable: true
+            url: 'https://ver1.maskinporten.no/token'
+            audience: 'https://ver1.maskinporten.no/'
+            send:
+                clientIdPrefix: 'MOVE_IP_'
+            receive:
+                clientId: 'MOVE_IP_991825827'
             scopes:
-                - dpi:read
-                - dpi:write
+                - digitalpostinnbygger:send
             keystore:
                 alias: ${dpi.client.keystore.alias}
                 lockProvider: ${dpi.client.keystore.lockProvider}

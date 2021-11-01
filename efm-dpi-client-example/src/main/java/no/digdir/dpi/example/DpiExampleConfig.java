@@ -2,7 +2,6 @@ package no.digdir.dpi.example;
 
 import lombok.RequiredArgsConstructor;
 import no.difi.meldingsutveksling.dpi.client.DpiClientConfig;
-import no.difi.meldingsutveksling.dpi.client.DpiClientProperties;
 import no.difi.meldingsutveksling.dpi.client.FileExtensionMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,6 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 @Import({
         DpiClientConfig.class,
-        DpiClientProperties.class,
         ShipmentFactory.class,
         FileExtensionMapper.class
 })

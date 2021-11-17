@@ -5,6 +5,8 @@ difi:
 dpi:
     client:
         type: file
+        asice:
+            type: commons-asic
         schema: online
         certificate:
             mode: TEST

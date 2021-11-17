@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.difi.meldingsutveksling.dpi.client.DpiClient;
 import no.difi.meldingsutveksling.dpi.client.domain.GetMessagesInput;
+import no.difi.meldingsutveksling.dpi.client.domain.Shipment;
 import org.apache.commons.cli.CommandLine;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +37,9 @@ public class DpiExample {
 
     private void sendMessage(CommandLine commandLine) {
         DpiSendInput input = getDpiSendInput.getDpiSendInput(commandLine);
-        dpiClient.sendMessage(shipmentFactory.getShipment(input));
+        Shipment shipment = shipmentFactory.getShipment(input);
+        log.info("Sending with messageId = " + shipment.getMessageId());
+        dpiClient.sendMessage(shipment);
     }
 
     private void getMessages(CommandLine commandLine) {

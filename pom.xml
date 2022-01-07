@@ -30,7 +30,7 @@
 
     <properties>
         <java.version>8</java.version>
-        <integrasjonspunkt.version>2.3.0-SNAPSHOT</integrasjonspunkt.version>
+        <integrasjonspunkt.version>2.4.0-SNAPSHOT</integrasjonspunkt.version>
     </properties>
 
     <modules>

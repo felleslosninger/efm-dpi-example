@@ -1,3 +1,8 @@
+> [!WARNING]
+> Please note that this project is not being maintained.
+>
+> A fork is being maintained under https://github.com/felleslosninger/efm-integrasjonspunkt/tree/development/dpi-client for the purpose of eFormidlings use of DPI.
+
 # efm-dpi-example
 
 The following properties are mandatory:
